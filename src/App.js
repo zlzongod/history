@@ -27,119 +27,23 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-const sampleData = {
-  units: {
-    "1단원": {
-      title: "대한민국 임시정부",
-      people: ["김구", "안창호", "이동녕", "이승만"],
-      events: ["임시정부수립", "한인애국단조직"],
-      places: ["상하이", "충칭"],
-      groups: ["임시정부", "한인애국단"],
-      institutions: ["임시헌장", "민주공화제"],  // 새로 추가: 제도 집합
-      connections: {
-        "김구": { events: ["임시정부수립", "한인애국단조직"], places: ["상하이", "충칭"], groups: ["임시정부", "한인애국단"], institutions: ["임시헌장"] },
-        "안창호": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"], institutions: ["임시헌장"] },
-        "이동녕": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"], institutions: ["임시헌장"] },
-        "이승만": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"], institutions: ["임시헌장"] }
-      },
-      eventDetails: {
-        "임시정부수립": {
-          background: ["3.1 운동", "일제 강점기 해외 독립운동 필요"],
-          development: ["독립운동가 상하이 집결", "임시의정원 구성", "임시헌장 제정", "정부 조직"],
-          result: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력"],
-          features: ["민주공화제 수립", "임시헌장 제정"],
-          years: ["1919"]
-        },
-        "한인애국단조직": {
-          background: ["임시정부의 무장투쟁 필요", "일제 침략 강화"],
-          development: ["김구 주도 조직", "단원 모집", "의열투쟁 계획"],
-          result: ["항일 의거 실행", "국민 항일 의식 고취"],
-          features: ["무장투쟁 단체", "의열투쟁 조직"],
-          years: ["1931"]
-        }
-      },
-      groupDetails: {
-        "임시정부": {
-          activities: ["독립운동 기반 마련", "국제적 인정 노력"]
-        },
-        "한인애국단": {
-          activities: ["항일 의거 실행", "의열투쟁"]
-        }
-      },
-      institutionDetails: {  // 새로 추가: 제도 상세
-        "임시헌장": {
-          features: ["민주주의 원칙", "권력 분립", "국민 주권"]
-        },
-        "민주공화제": {
-          features: ["대통령제", "의회제", "자유 선거"]
-        }
-      }
-    },
-    "2단원": {
-      title: "항일 의거",
-      people: ["안중근", "윤봉길", "이봉창"],
-      events: ["이토히로부미저격", "윤봉길의거", "이봉창의거"],
-      places: ["하얼빈", "상하이", "도쿄"],
-      groups: ["의열단"],
-      institutions: ["항일투쟁전략", "의열투쟁조직"],  // 새로 추가
-      connections: {
-        "안중근": { events: ["이토히로부미저격"], places: ["하얼빈"], groups: ["의열단"], institutions: ["항일투쟁전략"] },
-        "윤봉길": { events: ["윤봉길의거"], places: ["상하이"], groups: ["의열단"], institutions: ["항일투쟁전략"] },
-        "이봉창": { events: ["이봉창의거"], places: ["도쿄"], groups: ["의열단"], institutions: ["항일투쟁전략"] }
-      },
-      eventDetails: {
-        "이토히로부미저격": {
-          background: ["을사늑약 체결", "일제의 한국 침략"],
-          development: ["안중근의 결의", "하얼빈 이동", "저격 실행", "체포"],
-          result: ["국제적 주목", "항일 의지 표출"],
-          features: ["하얼빈 의거", "안중근 의사 활동"],
-          years: ["1909"]
-        },
-        "윤봉길의거": {
-          background: ["상하이 임시정부 활동", "일제 만주 침략"],
-          development: ["폭탄 제조", "홍커우 공원 투척", "체포"],
-          result: ["일제 충격", "중국인 지지 확대"],
-          features: ["홍커우 공원 폭탄 투척", "상하이 의거"],
-          years: ["1932"]
-        },
-        "이봉창의거": {
-          background: ["임시정부 한인애국단", "천황 암살 시도"],
-          development: ["도쿄 이동", "폭탄 투척", "실패 및 체포"],
-          result: ["항일 운동 고무", "국제 여론 환기"],
-          features: ["도쿄 의거", "일왕 투탄 시도"],
-          years: ["1932"]
-        }
-      },
-      groupDetails: {
-        "의열단": {
-          activities: ["항일 무장투쟁", "의거 실행"]
-        }
-      },
-      institutionDetails: {
-        "항일투쟁전략": {
-          features: ["무장투쟁 중심", "국제 여론 환기", "독립운동 기반 강화"]
-        },
-        "의열투쟁조직": {
-          features: ["비밀 결사", "의열 활동", "항일 의거"]
-        }
-      }
-    }
-  },
-  allPeople: ["김구", "안창호", "이동녕", "이승만", "안중근", "윤봉길", "이봉창", "이순신", "세종대왕", "신사임당"],
-  allGroups: ["임시정부", "한인애국단", "의열단"],
-  allInstitutions: ["임시헌장", "민주공화제", "항일투쟁전략", "의열투쟁조직"],  // 새로 추가: 전체 제도 목록
+const initialData = {
+  units: {},
+  allPeople: [],
+  allGroups: [],
+  allInstitutions: [],
   allEventItems: {
-    backgrounds: ["3.1 운동", "일제 강점기 해외 독립운동 필요", "임시정부의 무장투쟁 필요", "일제 침략 강화", "을사늑약 체결", "일제의 한국 침략", "상하이 임시정부 활동", "일제 만주 침략", "임시정부 한인애국단", "천황 암살 시도"],
-    developments: ["독립운동가 상하이 집결", "임시의정원 구성", "임시헌장 제정", "정부 조직", "김구 주도 조직", "단원 모집", "의열투쟁 계획", "안중근의 결의", "하얼빈 이동", "저격 실행", "체포", "폭탄 제조", "홍커우 공원 투척", "도쿄 이동", "폭탄 투척", "실패 및 체포"],
-    results: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "국민 항일 의식 고취", "국제적 주목", "항일 의지 표출", "일제 충격", "중국인 지지 확대", "항일 운동 고무", "국제 여론 환기"],
-    features: ["민주공화제 수립", "임시헌장 제정", "무장투쟁 단체", "의열투쟁 조직", "하얼빈 의거", "안중근 의사 활동", "홍커우 공원 폭탄 투척", "상하이 의거", "도쿄 의거", "일왕 투탄 시도"],
-    years: ["1919", "1931", "1909", "1932"]
+    backgrounds: [],
+    developments: [],
+    results: [],
+    features: [],
+    years: []
   },
   allGroupItems: {
-    activities: ["독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "의열투쟁", "항일 무장투쟁", "의거 실행"]
+    activities: []
   },
-  allInstitutionItems: {  // 새로 추가: 전체 제도 항목
-    features: ["민주주의 원칙", "권력 분립", "국민 주권", "대통령제", "의회제", "자유 선거", "무장투쟁 중심", "국제 여론 환기", "독립운동 기반 강화", "비밀 결사", "의열 활동", "항일 의거"]
+  allInstitutionItems: {
+    features: []
   }
 };
 
@@ -1000,7 +904,7 @@ function ExitModal({ onConfirm, onCancel }) {
 
 function App() {
   const [user, setUser] = useState(null);
-  const [data, setData] = useState(sampleData);
+  const [data, setData] = useState(initialData);
   const [screen, setScreen] = useState('home');
   const [editUnit, setEditUnit] = useState(null);
   const [settings, setSettings] = useState({ unit: '1단원', questionCount: 10 });
@@ -1022,12 +926,12 @@ function App() {
         getDoc(userDocRef).then((docSnap) => {
           if (docSnap.exists()) {
             const userData = docSnap.data();
-            setData(userData.quizData || sampleData);
+            setData(userData.quizData || initialData);
             setCorrectCounts(userData.userProgress?.correctCounts || {});
             setWrongQuestions(userData.userProgress?.wrongQuestions || []);
           } else {
-            setDoc(userDocRef, { quizData: sampleData, userProgress: { correctCounts: {}, wrongQuestions: [] } });
-            setData(sampleData);
+            setDoc(userDocRef, { quizData: initialData, userProgress: { correctCounts: {}, wrongQuestions: [] } });
+            setData(initialData);
             setCorrectCounts({});
             setWrongQuestions([]);
           }
@@ -1035,7 +939,7 @@ function App() {
           console.error("Error fetching user data:", error);
         });
       } else {
-        setData(sampleData);
+        setData(initialData);
         setCorrectCounts({});
         setWrongQuestions([]);
       }
