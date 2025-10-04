@@ -35,11 +35,12 @@ const sampleData = {
       events: ["임시정부수립", "한인애국단조직"],
       places: ["상하이", "충칭"],
       groups: ["임시정부", "한인애국단"],
+      institutions: ["임시헌장", "민주공화제"],  // 새로 추가: 제도 집합
       connections: {
-        "김구": { events: ["임시정부수립", "한인애국단조직"], places: ["상하이", "충칭"], groups: ["임시정부", "한인애국단"] },
-        "안창호": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"] },
-        "이동녕": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"] },
-        "이승만": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"] }
+        "김구": { events: ["임시정부수립", "한인애국단조직"], places: ["상하이", "충칭"], groups: ["임시정부", "한인애국단"], institutions: ["임시헌장"] },
+        "안창호": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"], institutions: ["임시헌장"] },
+        "이동녕": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"], institutions: ["임시헌장"] },
+        "이승만": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"], institutions: ["임시헌장"] }
       },
       eventDetails: {
         "임시정부수립": {
@@ -64,6 +65,14 @@ const sampleData = {
         "한인애국단": {
           activities: ["항일 의거 실행", "의열투쟁"]
         }
+      },
+      institutionDetails: {  // 새로 추가: 제도 상세
+        "임시헌장": {
+          features: ["민주주의 원칙", "권력 분립", "국민 주권"]
+        },
+        "민주공화제": {
+          features: ["대통령제", "의회제", "자유 선거"]
+        }
       }
     },
     "2단원": {
@@ -72,10 +81,11 @@ const sampleData = {
       events: ["이토히로부미저격", "윤봉길의거", "이봉창의거"],
       places: ["하얼빈", "상하이", "도쿄"],
       groups: ["의열단"],
+      institutions: ["항일투쟁전략", "의열투쟁조직"],  // 새로 추가
       connections: {
-        "안중근": { events: ["이토히로부미저격"], places: ["하얼빈"], groups: ["의열단"] },
-        "윤봉길": { events: ["윤봉길의거"], places: ["상하이"], groups: ["의열단"] },
-        "이봉창": { events: ["이봉창의거"], places: ["도쿄"], groups: ["의열단"] }
+        "안중근": { events: ["이토히로부미저격"], places: ["하얼빈"], groups: ["의열단"], institutions: ["항일투쟁전략"] },
+        "윤봉길": { events: ["윤봉길의거"], places: ["상하이"], groups: ["의열단"], institutions: ["항일투쟁전략"] },
+        "이봉창": { events: ["이봉창의거"], places: ["도쿄"], groups: ["의열단"], institutions: ["항일투쟁전략"] }
       },
       eventDetails: {
         "이토히로부미저격": {
@@ -104,11 +114,20 @@ const sampleData = {
         "의열단": {
           activities: ["항일 무장투쟁", "의거 실행"]
         }
+      },
+      institutionDetails: {
+        "항일투쟁전략": {
+          features: ["무장투쟁 중심", "국제 여론 환기", "독립운동 기반 강화"]
+        },
+        "의열투쟁조직": {
+          features: ["비밀 결사", "의열 활동", "항일 의거"]
+        }
       }
     }
   },
   allPeople: ["김구", "안창호", "이동녕", "이승만", "안중근", "윤봉길", "이봉창", "이순신", "세종대왕", "신사임당"],
   allGroups: ["임시정부", "한인애국단", "의열단"],
+  allInstitutions: ["임시헌장", "민주공화제", "항일투쟁전략", "의열투쟁조직"],  // 새로 추가: 전체 제도 목록
   allEventItems: {
     backgrounds: ["3.1 운동", "일제 강점기 해외 독립운동 필요", "임시정부의 무장투쟁 필요", "일제 침략 강화", "을사늑약 체결", "일제의 한국 침략", "상하이 임시정부 활동", "일제 만주 침략", "임시정부 한인애국단", "천황 암살 시도"],
     developments: ["독립운동가 상하이 집결", "임시의정원 구성", "임시헌장 제정", "정부 조직", "김구 주도 조직", "단원 모집", "의열투쟁 계획", "안중근의 결의", "하얼빈 이동", "저격 실행", "체포", "폭탄 제조", "홍커우 공원 투척", "도쿄 이동", "폭탄 투척", "실패 및 체포"],
@@ -118,6 +137,9 @@ const sampleData = {
   },
   allGroupItems: {
     activities: ["독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "의열투쟁", "항일 무장투쟁", "의거 실행"]
+  },
+  allInstitutionItems: {  // 새로 추가: 전체 제도 항목
+    features: ["민주주의 원칙", "권력 분립", "국민 주권", "대통령제", "의회제", "자유 선거", "무장투쟁 중심", "국제 여론 환기", "독립운동 기반 강화", "비밀 결사", "의열 활동", "항일 의거"]
   }
 };
 
@@ -246,13 +268,15 @@ function AuthScreen() {
 }
 
 function UnitEditor({ unit, onSave, onCancel }) {
-  const [editData, setEditData] = useState({ ...unit, eventDetails: unit.eventDetails || {}, groupDetails: unit.groupDetails || {}, groups: unit.groups || [] });
+  const [editData, setEditData] = useState({ ...unit, eventDetails: unit.eventDetails || {}, groupDetails: unit.groupDetails || {}, institutionDetails: unit.institutionDetails || {}, groups: unit.groups || [], institutions: unit.institutions || [] });
   const [newPerson, setNewPerson] = useState('');
   const [newEvent, setNewEvent] = useState('');
   const [newPlace, setNewPlace] = useState('');
   const [newGroup, setNewGroup] = useState('');
+  const [newInstitution, setNewInstitution] = useState('');  // 새로 추가: 제도 입력
   const [newSub, setNewSub] = useState({});
   const [newActivity, setNewActivity] = useState({});
+  const [newInstitutionFeature, setNewInstitutionFeature] = useState({});  // 새로 추가: 제도 특징 입력
   const [selectedPerson, setSelectedPerson] = useState('');
   const [openSections, setOpenSections] = useState({
     basic: false,
@@ -260,12 +284,15 @@ function UnitEditor({ unit, onSave, onCancel }) {
     events: false,
     places: false,
     groups: false,
+    institutions: false,  // 새로 추가: 제도 섹션
     connections: false,
     eventDetails: false,
-    groupDetails: false
+    groupDetails: false,
+    institutionDetails: false  // 새로 추가: 제도 상세 섹션
   });
   const [openEvents, setOpenEvents] = useState({});
   const [openGroups, setOpenGroups] = useState({});
+  const [openInstitutions, setOpenInstitutions] = useState({});  // 새로 추가: 제도 펼치기/접기
 
   useEffect(() => {
     const initialOpenEvents = {};
@@ -279,7 +306,13 @@ function UnitEditor({ unit, onSave, onCancel }) {
       initialOpenGroups[gr] = false;
     });
     setOpenGroups(initialOpenGroups);
-  }, [editData.events, editData.groups]);
+
+    const initialOpenInstitutions = {};  // 새로 추가
+    editData.institutions.forEach(inst => {
+      initialOpenInstitutions[inst] = false;
+    });
+    setOpenInstitutions(initialOpenInstitutions);
+  }, [editData.events, editData.groups, editData.institutions]);
 
   const toggleSection = (section) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -293,6 +326,10 @@ function UnitEditor({ unit, onSave, onCancel }) {
     setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }));
   };
 
+  const toggleInstitution = (institution) => {  // 새로 추가
+    setOpenInstitutions(prev => ({ ...prev, [institution]: !prev[institution] }));
+  };
+
   const addPerson = () => {
     const np = newPerson.trim();
     if (!np) return;
@@ -301,7 +338,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
       people: [...editData.people, np],
       connections: {
         ...editData.connections,
-        [np]: { events: [], places: [], groups: [] }
+        [np]: { events: [], places: [], groups: [], institutions: [] }  // institutions 추가
       }
     });
     setNewPerson('');
@@ -340,6 +377,20 @@ function UnitEditor({ unit, onSave, onCancel }) {
       }
     });
     setNewGroup('');
+  };
+
+  const addInstitution = () => {  // 새로 추가: 제도 추가
+    const ni = newInstitution.trim();
+    if (!ni) return;
+    setEditData({
+      ...editData,
+      institutions: [...editData.institutions, ni],
+      institutionDetails: {
+        ...editData.institutionDetails,
+        [ni]: { features: [] }
+      }
+    });
+    setNewInstitution('');
   };
 
   const addSubItem = (event, type, value) => {
@@ -382,8 +433,28 @@ function UnitEditor({ unit, onSave, onCancel }) {
     setEditData({ ...editData, groupDetails: newDetails });
   };
 
+  const addInstitutionFeatureItem = (institution, value) => {  // 새로 추가: 제도 특징 추가
+    const nv = value.trim();
+    if (!nv) return;
+    const newDetails = { ...editData.institutionDetails };
+    const det = { ...newDetails[institution] };
+    det.features = [...(det.features || []), nv];
+    newDetails[institution] = det;
+    setEditData({ ...editData, institutionDetails: newDetails });
+    const key = `${institution}-features`;
+    setNewInstitutionFeature({ ...newInstitutionFeature, [key]: '' });
+  };
+
+  const removeInstitutionFeatureItem = (institution, index) => {  // 새로 추가: 제도 특징 제거
+    const newDetails = { ...editData.institutionDetails };
+    const det = { ...newDetails[institution] };
+    det.features = det.features.filter((_, i) => i !== index);
+    newDetails[institution] = det;
+    setEditData({ ...editData, institutionDetails: newDetails });
+  };
+
   const toggleConnection = (person, type, value) => {
-    const conn = editData.connections[person] || { events: [], places: [], groups: [] };
+    const conn = editData.connections[person] || { events: [], places: [], groups: [], institutions: [] };
     const list = conn[type] || [];
     const newList = list.includes(value) ? list.filter(v => v !== value) : [...list, value];
     setEditData({
@@ -431,6 +502,17 @@ function UnitEditor({ unit, onSave, onCancel }) {
     const newDetails = { ...editData.groupDetails };
     delete newDetails[gr];
     setEditData({ ...editData, groups: newGroups, connections: newConn, groupDetails: newDetails });
+  };
+
+  const removeInstitution = (index, inst) => {  // 새로 추가: 제도 제거
+    const newInstitutions = editData.institutions.filter((_, i) => i !== index);
+    const newConn = { ...editData.connections };
+    Object.keys(newConn).forEach(p => {
+      newConn[p].institutions = newConn[p].institutions.filter(i => i !== inst);
+    });
+    const newDetails = { ...editData.institutionDetails };
+    delete newDetails[inst];
+    setEditData({ ...editData, institutions: newInstitutions, connections: newConn, institutionDetails: newDetails });
   };
 
   return (
@@ -560,6 +642,32 @@ function UnitEditor({ unit, onSave, onCancel }) {
         )}
       </div>
 
+      <div className="mb-6">  {/* 새로 추가: 제도 섹션 */}
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
+          onClick={() => toggleSection('institutions')}
+        >
+          ⚖️ 제도
+          <ChevronDown className={`transform ${openSections.institutions ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.institutions && (
+          <>
+            <div className="flex gap-2 mb-4">
+              <input value={newInstitution} onChange={e => setNewInstitution(e.target.value)} onKeyPress={e => e.key === 'Enter' && addInstitution()} placeholder="제도 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
+              <button onClick={addInstitution} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+            </div>
+            <div className="space-y-2 mb-6">
+              {editData.institutions.map((inst, i) => (
+                <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                  <span>{inst}</span>
+                  <button onClick={() => removeInstitution(i, inst)} className="text-red-600"><Trash2 size={20} /></button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
       <div className="mb-6">
         <h2 
           className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
@@ -570,7 +678,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
         </h2>
         {openSections.connections && (
           <>
-            <p className="mb-4">각 인물이 참여한 사건, 활동 장소, 속한 집단을 선택하세요</p>
+            <p className="mb-4">각 인물이 참여한 사건, 활동 장소, 속한 집단, 관련 제도를 선택하세요</p>
             <select value={selectedPerson} onChange={e => setSelectedPerson(e.target.value)} className="w-full p-3 border rounded-lg mb-4">
               <option>인물 선택</option>
               {editData.people.map(p => <option key={p} value={p}>{p}</option>)}
@@ -606,6 +714,17 @@ function UnitEditor({ unit, onSave, onCancel }) {
                       <div key={gr} className="flex items-center gap-2">
                         <input type="checkbox" checked={(editData.connections[selectedPerson]?.groups || []).includes(gr)} onChange={() => toggleConnection(selectedPerson, 'groups', gr)} className="w-4 h-4" />
                         {gr}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>  {/* 새로 추가: 관련 제도 */}
+                  <h3 className="font-medium mb-2">관련 제도</h3>
+                  <div className="space-y-2">
+                    {editData.institutions.map(inst => (
+                      <div key={inst} className="flex items-center gap-2">
+                        <input type="checkbox" checked={(editData.connections[selectedPerson]?.institutions || []).includes(inst)} onChange={() => toggleConnection(selectedPerson, 'institutions', inst)} className="w-4 h-4" />
+                        {inst}
                       </div>
                     ))}
                   </div>
@@ -804,6 +923,56 @@ function UnitEditor({ unit, onSave, onCancel }) {
         )}
       </div>
 
+      <div className="mb-6">  {/* 새로 추가: 제도 상세 섹션 */}
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
+          onClick={() => toggleSection('institutionDetails')}
+        >
+          ⚖️ 제도 상세
+          <ChevronDown className={`transform ${openSections.institutionDetails ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.institutionDetails && (
+          <>
+            {editData.institutions.map(institution => (
+              <div key={institution} className="mb-6">
+                <h3 
+                  className="text-lg font-bold mb-4 flex items-center justify-between cursor-pointer bg-white p-4 rounded-lg"
+                  onClick={() => toggleInstitution(institution)}
+                >
+                  {institution}
+                  <ChevronDown className={`transform ${openInstitutions[institution] ? 'rotate-180' : ''} transition-transform`} size={20} />
+                </h3>
+                {openInstitutions[institution] && (
+                  <div className="bg-white p-4 rounded-lg mt-2">
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">특징</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newInstitutionFeature[`${institution}-features`] || ''}
+                          onChange={e => setNewInstitutionFeature({ ...newInstitutionFeature, [`${institution}-features`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addInstitutionFeatureItem(institution, newInstitutionFeature[`${institution}-features`])}
+                          placeholder="특징 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addInstitutionFeatureItem(institution, newInstitutionFeature[`${institution}-features`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                      </div>
+                      <div className="space-y-2">
+                        {(editData.institutionDetails[institution]?.features || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeInstitutionFeatureItem(institution, i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
       <div className="flex gap-4 mt-8">
         <button onClick={onCancel} className="flex-1 bg-gray-200 p-4 rounded-lg font-bold">취소</button>
         <button onClick={() => onSave(editData)} className="flex-1 bg-blue-600 text-white p-4 rounded-lg font-bold flex items-center justify-center gap-2">
@@ -862,6 +1031,8 @@ function App() {
             setCorrectCounts({});
             setWrongQuestions([]);
           }
+        }).catch((error) => {
+          console.error("Error fetching user data:", error);
         });
       } else {
         setData(sampleData);
@@ -878,7 +1049,9 @@ function App() {
       setDoc(userDocRef, {
         quizData: data,
         userProgress: { correctCounts, wrongQuestions }
-      }, { merge: true });
+      }, { merge: true }).catch((error) => {
+        console.error("Error saving to Firebase:", error);
+      });
     }
   }, [data, correctCounts, wrongQuestions, user]);
 
@@ -900,12 +1073,38 @@ function App() {
   const generateQuiz = () => {
     const unit = data.units[settings.unit];
     const questions = [];
-    const types = ['person-event', 'person-place', 'person-group', 'event-person', 'event-place', 'group-person', 'group-activity', 'event-background', 'event-development', 'event-result', 'event-features', 'event-year'];
+    const types = ['person-event', 'person-place', 'person-group', 'event-person', 'event-place', 'group-person', 'group-activity', 'event-background', 'event-development', 'event-result', 'event-features', 'event-year', 'institution-features', 'person-institution'];  // 새로 추가: 제도 관련 타입
+    const typeWeights = {  // 유형 다양성: 가중치 추가 (반복 방지)
+      'person-event': 1,
+      'person-place': 1,
+      'person-group': 1,
+      'event-person': 1.2,
+      'event-place': 1.2,
+      'group-person': 1.2,
+      'group-activity': 1.5,
+      'event-background': 1.5,
+      'event-development': 2,  // 전개 문제 가중치 높임 (오류 수정 후)
+      'event-result': 1.5,
+      'event-features': 1.5,
+      'event-year': 1,
+      'institution-features': 2,  // 새 타입 가중치 높임
+      'person-institution': 1.8
+    };
+    const totalWeight = Object.values(typeWeights).reduce((a, b) => a + b, 0);
     const newGenerated = new Set();
 
     while (questions.length < settings.questionCount) {
-      const type = types[Math.floor(Math.random() * types.length)];
-      const q = generateQuestion(type, unit, data);
+      const rand = Math.random() * totalWeight;
+      let cumulative = 0;
+      let selectedType = null;
+      for (const type in typeWeights) {
+        cumulative += typeWeights[type];
+        if (rand <= cumulative) {
+          selectedType = type;
+          break;
+        }
+      }
+      const q = generateQuestion(selectedType, unit, data);
       if (q) {
         const questionKey = getQuestionKey(q);
         if (correctCounts[questionKey] >= 4) continue;
@@ -938,6 +1137,7 @@ function App() {
   };
 
   const generateQuestion = (type, unit, data) => {
+    const distractorCount = Math.floor(Math.random() * 3) + 7;  // 7~9개 distractors (총 options 8~10+answer)
     if (type === 'person-event') {
       const person = unit.people[Math.floor(Math.random() * unit.people.length)];
       const events = unit.connections[person]?.events || [];
@@ -946,7 +1146,7 @@ function App() {
       const answer = events.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.events.filter(e => !answer.includes(e));
       const globalNonUnit = Object.values(data.units).flatMap(u => u.events || []).filter(e => !unit.events.includes(e));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '인물-사건', question: `'${person}'이(가) 참여한 사건을 모두 고르시오.`, options, answer };
     } else if (type === 'person-place') {
@@ -957,7 +1157,7 @@ function App() {
       const answer = places.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.places.filter(p => !answer.includes(p));
       const globalNonUnit = Object.values(data.units).flatMap(u => u.places || []).filter(p => !unit.places.includes(p));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '인물-장소', question: `'${person}'이(가) 활동한 장소를 모두 고르시오.`, options, answer };
     } else if (type === 'person-group') {
@@ -968,7 +1168,7 @@ function App() {
       const answer = groups.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.groups.filter(g => !answer.includes(g));
       const globalNonUnit = data.allGroups.filter(g => !unit.groups.includes(g));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '인물-집단', question: `'${person}'이(가) 속한 집단을 모두 고르시오.`, options, answer };
     } else if (type === 'event-person') {
@@ -979,7 +1179,7 @@ function App() {
       const answer = people.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.people.filter(p => !answer.includes(p));
       const globalNonUnit = data.allPeople.filter(p => !unit.people.includes(p));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건-인물', question: `'${event}'에 참여한 인물을 모두 고르시오.`, options, answer };
     } else if (type === 'event-place') {
@@ -991,7 +1191,7 @@ function App() {
       const answer = places.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.places.filter(p => !answer.includes(p));
       const globalNonUnit = Object.values(data.units).flatMap(u => u.places || []).filter(p => !unit.places.includes(p));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건-장소', question: `'${event}'이(가) 일어난 장소를 모두 고르시오.`, options, answer };
     } else if (type === 'group-person') {
@@ -1002,7 +1202,7 @@ function App() {
       const answer = people.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.people.filter(p => !answer.includes(p));
       const globalNonUnit = data.allPeople.filter(p => !unit.people.includes(p));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '집단-인물', question: `'${group}'에 속한 인물을 모두 고르시오.`, options, answer };
     } else if (type === 'group-activity') {
@@ -1014,7 +1214,7 @@ function App() {
       const unitAllActivities = unit.groups.flatMap(g => unit.groupDetails?.[g]?.activities || []);
       const nonAnswer = unitAllActivities.filter(a => !answer.includes(a));
       const globalNonUnit = data.allGroupItems.activities.filter(a => !unitAllActivities.includes(a));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '집단 활동', question: `'${group}'의 활동에 해당하는 것을 모두 고르시오.`, options, answer };
     } else if (type === 'event-background') {
@@ -1026,9 +1226,22 @@ function App() {
       const unitAllBackgrounds = unit.events.flatMap(e => unit.eventDetails?.[e]?.background || []);
       const nonAnswer = unitAllBackgrounds.filter(b => !answer.includes(b));
       const globalNonUnit = data.allEventItems.backgrounds.filter(b => !unitAllBackgrounds.includes(b));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건 배경', question: `'${event}'의 배경에 해당하는 것을 모두 고르시오.`, options, answer };
+    } else if (type === 'event-development') {
+      const event = unit.events[Math.floor(Math.random() * unit.events.length)];
+      const developments = unit.eventDetails?.[event]?.development || [];
+      if (developments.length < 3) return null;  // 최소 3개 이상으로 제한하여 순서 문제 명확히
+      const k = Math.min(3, developments.length);  // 최대 3개로 제한하여 순서 배열 용이
+      const start = Math.floor(Math.random() * (developments.length - k + 1));
+      const answer = developments.slice(start, start + k);  // 연속 순서 유지
+      const unitAllDevelopments = unit.events.flatMap(e => unit.eventDetails?.[e]?.development || []);
+      const nonAnswer = unitAllDevelopments.filter(d => !answer.includes(d));
+      const globalNonUnit = data.allEventItems.developments.filter(d => !unitAllDevelopments.includes(d));
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '사건 전개', question: `'${event}'의 전개 과정 중 해당하는 것을 모두 골라 올바른 시간 순서대로 배열하시오. (배열 순서가 중요합니다. 위에서 아래로 과거부터 미래 순.)`, options, answer };
     } else if (type === 'event-result') {
       const event = unit.events[Math.floor(Math.random() * unit.events.length)];
       const results = unit.eventDetails?.[event]?.result || [];
@@ -1038,22 +1251,9 @@ function App() {
       const unitAllResults = unit.events.flatMap(e => unit.eventDetails?.[e]?.result || []);
       const nonAnswer = unitAllResults.filter(r => !answer.includes(r));
       const globalNonUnit = data.allEventItems.results.filter(r => !unitAllResults.includes(r));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건 결과 및 의의', question: `'${event}'의 결과 및 의의에 해당하는 것을 모두 고르시오.`, options, answer };
-    } else if (type === 'event-development') {
-      const event = unit.events[Math.floor(Math.random() * unit.events.length)];
-      const developments = unit.eventDetails?.[event]?.development || [];
-      if (developments.length === 0) return null;
-      const k = Math.floor(Math.random() * Math.min(3, developments.length)) + 1;
-      const start = Math.floor(Math.random() * (developments.length - k + 1));
-      const answer = developments.slice(start, start + k);
-      const unitAllDevelopments = unit.events.flatMap(e => unit.eventDetails?.[e]?.development || []);
-      const nonAnswer = unitAllDevelopments.filter(d => !answer.includes(d));
-      const globalNonUnit = data.allEventItems.developments.filter(d => !unitAllDevelopments.includes(d));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
-      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
-      return { type: '사건 전개', question: `'${event}'의 전개 과정 중 해당하는 것을 모두 골라 올바른 순서로 배열하시오.`, options, answer };
     } else if (type === 'event-features') {
       const event = unit.events[Math.floor(Math.random() * unit.events.length)];
       const features = unit.eventDetails?.[event]?.features || [];
@@ -1063,7 +1263,7 @@ function App() {
       const unitAllFeatures = unit.events.flatMap(e => unit.eventDetails?.[e]?.features || []);
       const nonAnswer = unitAllFeatures.filter(f => !answer.includes(f));
       const globalNonUnit = data.allEventItems.features.filter(f => !unitAllFeatures.includes(f));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건 특징', question: `'${event}'의 특징으로 올바른 것을 모두 고르시오.`, options, answer };
     } else if (type === 'event-year') {
@@ -1075,9 +1275,32 @@ function App() {
       const unitAllYears = unit.events.flatMap(e => unit.eventDetails?.[e]?.years || []);
       const nonAnswer = unitAllYears.filter(y => !answer.includes(y));
       const globalNonUnit = data.allEventItems.years.filter(y => !unitAllYears.includes(y));
-      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건 연도', question: `'${event}'이 발생한 연도를 모두 고르시오.`, options, answer };
+    } else if (type === 'institution-features') {  // 새로 추가: 제도 특징 문제
+      const institution = unit.institutions[Math.floor(Math.random() * unit.institutions.length)];
+      const features = unit.institutionDetails?.[institution]?.features || [];
+      if (features.length === 0) return null;
+      const k = Math.floor(Math.random() * Math.min(3, features.length)) + 1;
+      const answer = features.sort(() => 0.5 - Math.random()).slice(0, k);
+      const unitAllFeatures = unit.institutions.flatMap(i => unit.institutionDetails?.[i]?.features || []);
+      const nonAnswer = unitAllFeatures.filter(f => !answer.includes(f));
+      const globalNonUnit = data.allInstitutionItems.features.filter(f => !unitAllFeatures.includes(f));
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '제도 특징', question: `'${institution}'의 특징으로 올바른 것을 모두 고르시오.`, options, answer };
+    } else if (type === 'person-institution') {  // 새로 추가: 인물-제도 문제
+      const person = unit.people[Math.floor(Math.random() * unit.people.length)];
+      const institutions = unit.connections[person]?.institutions || [];
+      if (institutions.length === 0) return null;
+      const k = Math.floor(Math.random() * institutions.length) + 1;
+      const answer = institutions.sort(() => 0.5 - Math.random()).slice(0, k);
+      const nonAnswer = unit.institutions.filter(i => !answer.includes(i));
+      const globalNonUnit = data.allInstitutions.filter(i => !unit.institutions.includes(i));
+      const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '인물-제도', question: `'${person}'이(가) 관련된 제도를 모두 고르시오.`, options, answer };
     }
   };
 
@@ -1161,21 +1384,26 @@ function App() {
       events: unitData.events, 
       places: unitData.places, 
       groups: unitData.groups,
+      institutions: unitData.institutions,  // 새로 추가
       connections: unitData.connections,
       eventDetails: unitData.eventDetails,
-      groupDetails: unitData.groupDetails 
+      groupDetails: unitData.groupDetails,
+      institutionDetails: unitData.institutionDetails  // 새로 추가
     }};
     const allPeopleSet = new Set();
     const allGroupsSet = new Set();
+    const allInstitutionsSet = new Set();  // 새로 추가
     const allBgSet = new Set();
     const allDevSet = new Set();
     const allResSet = new Set();
     const allFeatSet = new Set();
     const allYearsSet = new Set();
     const allActSet = new Set();
+    const allInstFeatSet = new Set();  // 새로 추가
     Object.values(newUnits).forEach(u => {
       u.people.forEach(p => allPeopleSet.add(p));
       u.groups.forEach(g => allGroupsSet.add(g));
+      u.institutions.forEach(i => allInstitutionsSet.add(i));  // 새로 추가
       Object.values(u.eventDetails || {}).forEach(d => {
         (d.background || []).forEach(b => allBgSet.add(b));
         (d.development || []).forEach(dev => allDevSet.add(dev));
@@ -1186,11 +1414,15 @@ function App() {
       Object.values(u.groupDetails || {}).forEach(d => {
         (d.activities || []).forEach(a => allActSet.add(a));
       });
+      Object.values(u.institutionDetails || {}).forEach(d => {  // 새로 추가
+        (d.features || []).forEach(f => allInstFeatSet.add(f));
+      });
     });
     const newData = { 
       units: newUnits, 
       allPeople: Array.from(allPeopleSet), 
       allGroups: Array.from(allGroupsSet),
+      allInstitutions: Array.from(allInstitutionsSet),  // 새로 추가
       allEventItems: {
         backgrounds: Array.from(allBgSet),
         developments: Array.from(allDevSet),
@@ -1200,6 +1432,9 @@ function App() {
       },
       allGroupItems: {
         activities: Array.from(allActSet)
+      },
+      allInstitutionItems: {  // 새로 추가
+        features: Array.from(allInstFeatSet)
       }
     };
     setData(newData);
@@ -1266,7 +1501,7 @@ function App() {
       <div className="max-w-md mx-auto p-6">
         <button onClick={() => setScreen('home')} className="mb-6 text-blue-600">← 뒤로</button>
         <h1 className="text-2xl font-bold mb-8">데이터 편집기</h1>
-        <button onClick={() => { setEditUnit({ key: '', title: '', people: [], events: [], places: [], groups: [], connections: {}, eventDetails: {}, groupDetails: {} }); setScreen('editor-edit'); }} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mb-6">
+        <button onClick={() => { setEditUnit({ key: '', title: '', people: [], events: [], places: [], groups: [], institutions: [], connections: {}, eventDetails: {}, groupDetails: {}, institutionDetails: {} }); setScreen('editor-edit'); }} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mb-6">
           <Plus size={20} /> 새 단원
         </button>
         <div className="space-y-4">
@@ -1274,7 +1509,7 @@ function App() {
             <div key={key} className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
               <div>
                 <h2 className="font-bold">{key} - {unit.title}</h2>
-                <p className="text-sm text-gray-500">👤 {unit.people.length}명 · 📅 {unit.events.length}개 · 📍 {unit.places.length}개 · 👥 {unit.groups.length}개</p>
+                <p className="text-sm text-gray-500">👤 {unit.people.length}명 · 📅 {unit.events.length}개 · 📍 {unit.places.length}개 · 👥 {unit.groups.length}개 · ⚖️ {unit.institutions.length}개</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => { setEditUnit({ key, ...unit }); setScreen('editor-edit'); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={20} /></button>
@@ -1284,15 +1519,18 @@ function App() {
                     delete newUnits[key]; 
                     const allPeopleSet = new Set();
                     const allGroupsSet = new Set();
+                    const allInstitutionsSet = new Set();  // 새로 추가
                     const allBgSet = new Set();
                     const allDevSet = new Set();
                     const allResSet = new Set();
                     const allFeatSet = new Set();
                     const allYearsSet = new Set();
                     const allActSet = new Set();
+                    const allInstFeatSet = new Set();  // 새로 추가
                     Object.values(newUnits).forEach(u => {
                       u.people.forEach(p => allPeopleSet.add(p));
                       u.groups.forEach(g => allGroupsSet.add(g));
+                      u.institutions.forEach(i => allInstitutionsSet.add(i));  // 새로 추가
                       Object.values(u.eventDetails || {}).forEach(d => {
                         (d.background || []).forEach(b => allBgSet.add(b));
                         (d.development || []).forEach(dev => allDevSet.add(dev));
@@ -1303,11 +1541,15 @@ function App() {
                       Object.values(u.groupDetails || {}).forEach(d => {
                         (d.activities || []).forEach(a => allActSet.add(a));
                       });
+                      Object.values(u.institutionDetails || {}).forEach(d => {  // 새로 추가
+                        (d.features || []).forEach(f => allInstFeatSet.add(f));
+                      });
                     });
                     const newData = { 
                       units: newUnits, 
                       allPeople: Array.from(allPeopleSet), 
                       allGroups: Array.from(allGroupsSet),
+                      allInstitutions: Array.from(allInstitutionsSet),  // 새로 추가
                       allEventItems: {
                         backgrounds: Array.from(allBgSet),
                         developments: Array.from(allDevSet),
@@ -1317,6 +1559,9 @@ function App() {
                       },
                       allGroupItems: {
                         activities: Array.from(allActSet)
+                      },
+                      allInstitutionItems: {  // 새로 추가
+                        features: Array.from(allInstFeatSet)
                       }
                     };
                     setData(newData);
@@ -1371,7 +1616,7 @@ function App() {
           </div>
           <h1 className="text-xl font-bold mb-2">{settings.unit} | {q.type}</h1>
           <p className="mb-6">{q.question}</p>
-          <div className="space-y-4 mb-6">
+          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">  {/* 스크롤 추가: max-h-96 overflow-y-auto */}
             {q.options.map((option, idx) => {
               const isSelected = selected.includes(option);
               const isCorrect = q.answer.includes(option);
@@ -1391,7 +1636,7 @@ function App() {
           </div>
           {isOrdered && !showAnswer && (
             <div className="mb-6">
-              <h3 className="font-semibold mb-2">현재 배열 순서</h3>
+              <h3 className="font-semibold mb-2">현재 배열 순서 (과거부터 미래 순으로 배열하세요)</h3>
               <ol className="list-decimal pl-6 space-y-2">
                 {selected.map((o, i) => (
                   <li key={o} className="flex items-center justify-between bg-gray-50 p-2 rounded">
