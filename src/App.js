@@ -1073,7 +1073,6 @@ function App() {
   const generateQuiz = () => {
     const unit = data.units[settings.unit];
     const questions = [];
-    const types = ['person-event', 'person-place', 'person-group', 'event-person', 'event-place', 'group-person', 'group-activity', 'event-background', 'event-development', 'event-result', 'event-features', 'event-year', 'institution-features', 'person-institution'];  // 새로 추가: 제도 관련 타입
     const typeWeights = {  // 유형 다양성: 가중치 추가 (반복 방지)
       'person-event': 1,
       'person-place': 1,
