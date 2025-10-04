@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Edit, ChevronRight, Check, X, Home, Plus, Trash2, Save, LogOut, RefreshCw } from 'lucide-react';
+import { BookOpen, Edit, ChevronRight, Check, X, Home, Plus, Trash2, Save, LogOut, RefreshCw, ChevronDown } from 'lucide-react';
 import './App.css';
 
 // Firebase imports
@@ -233,6 +233,18 @@ function UnitEditor({ unit, onSave, onCancel }) {
   const [newPlace, setNewPlace] = useState('');
   const [newSub, setNewSub] = useState({});
   const [selectedPerson, setSelectedPerson] = useState('');
+  const [openSections, setOpenSections] = useState({
+    basic: true,
+    people: true,
+    events: true,
+    places: true,
+    connections: true,
+    eventDetails: true
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const addPerson = () => {
     const np = newPerson.trim();
@@ -334,203 +346,275 @@ function UnitEditor({ unit, onSave, onCancel }) {
       <button onClick={onCancel} className="mb-6 text-blue-600 flex items-center gap-2">← 목록으로</button>
       <h1 className="text-2xl font-bold mb-8">{unit.key ? '단원 편집' : '새 단원'}</h1>
 
-      <h2 className="text-xl font-semibold mb-4">기본 정보</h2>
-      <label className="block mb-2 font-medium">단원명</label>
-      <input value={editData.key} onChange={e => setEditData({ ...editData, key: e.target.value })} placeholder="예: 1단원" className="w-full p-3 border rounded-lg mb-4" disabled={!!unit.key} />
-      <label className="block mb-2 font-medium">제목</label>
-      <input value={editData.title} onChange={e => setEditData({ ...editData, title: e.target.value })} placeholder="예: 대한민국 임시정부" className="w-full p-3 border rounded-lg mb-6" />
-
-      <h2 className="text-xl font-semibold mb-4">👤 인물</h2>
-      <div className="flex gap-2 mb-4">
-        <input value={newPerson} onChange={e => setNewPerson(e.target.value)} onKeyPress={e => e.key === 'Enter' && addPerson()} placeholder="인물 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
-        <button onClick={addPerson} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-      </div>
-      <div className="space-y-2 mb-6">
-        {editData.people.map((p, i) => (
-          <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
-            <span>{p}</span>
-            <button onClick={() => removePerson(i, p)} className="text-red-600"><Trash2 size={20} /></button>
-          </div>
-        ))}
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          onClick={() => toggleSection('basic')}
+        >
+          기본 정보
+          <ChevronDown className={`transform ${openSections.basic ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.basic && (
+          <>
+            <label className="block mb-2 font-medium">단원명</label>
+            <input value={editData.key} onChange={e => setEditData({ ...editData, key: e.target.value })} placeholder="예: 1단원" className="w-full p-3 border rounded-lg mb-4" disabled={!!unit.key} />
+            <label className="block mb-2 font-medium">제목</label>
+            <input value={editData.title} onChange={e => setEditData({ ...editData, title: e.target.value })} placeholder="예: 대한민국 임시정부" className="w-full p-3 border rounded-lg mb-6" />
+          </>
+        )}
       </div>
 
-      <h2 className="text-xl font-semibold mb-4">📅 사건</h2>
-      <div className="flex gap-2 mb-4">
-        <input value={newEvent} onChange={e => setNewEvent(e.target.value)} onKeyPress={e => e.key === 'Enter' && addEvent()} placeholder="사건 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
-        <button onClick={addEvent} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-      </div>
-      <div className="space-y-2 mb-6">
-        {editData.events.map((e, i) => (
-          <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
-            <span>{e}</span>
-            <button onClick={() => removeEvent(i, e)} className="text-red-600"><Trash2 size={20} /></button>
-          </div>
-        ))}
-      </div>
-
-      <h2 className="text-xl font-semibold mb-4">📍 장소</h2>
-      <div className="flex gap-2 mb-4">
-        <input value={newPlace} onChange={e => setNewPlace(e.target.value)} onKeyPress={e => e.key === 'Enter' && addPlace()} placeholder="장소 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
-        <button onClick={addPlace} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-      </div>
-      <div className="space-y-2 mb-6">
-        {editData.places.map((p, i) => (
-          <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
-            <span>{p}</span>
-            <button onClick={() => removePlace(i, p)} className="text-red-600"><Trash2 size={20} /></button>
-          </div>
-        ))}
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          onClick={() => toggleSection('people')}
+        >
+          👤 인물
+          <ChevronDown className={`transform ${openSections.people ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.people && (
+          <>
+            <div className="flex gap-2 mb-4">
+              <input value={newPerson} onChange={e => setNewPerson(e.target.value)} onKeyPress={e => e.key === 'Enter' && addPerson()} placeholder="인물 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
+              <button onClick={addPerson} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+            </div>
+            <div className="space-y-2 mb-6">
+              {editData.people.map((p, i) => (
+                <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                  <span>{p}</span>
+                  <button onClick={() => removePerson(i, p)} className="text-red-600"><Trash2 size={20} /></button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      <h2 className="text-xl font-semibold mb-4">🔗 연결 관계</h2>
-      <p className="mb-4">각 인물이 참여한 사건과 활동 장소를 선택하세요</p>
-      <select value={selectedPerson} onChange={e => setSelectedPerson(e.target.value)} className="w-full p-3 border rounded-lg mb-4">
-        <option>인물 선택</option>
-        {editData.people.map(p => <option key={p} value={p}>{p}</option>)}
-      </select>
-      {selectedPerson && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-medium mb-2">참여한 사건</h3>
-            <div className="space-y-2">
-              {editData.events.map(ev => (
-                <div key={ev} className="flex items-center gap-2">
-                  <input type="checkbox" checked={(editData.connections[selectedPerson]?.events || []).includes(ev)} onChange={() => toggleConnection(selectedPerson, 'events', ev)} className="w-4 h-4" />
-                  {ev}
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          onClick={() => toggleSection('events')}
+        >
+          📅 사건
+          <ChevronDown className={`transform ${openSections.events ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.events && (
+          <>
+            <div className="flex gap-2 mb-4">
+              <input value={newEvent} onChange={e => setNewEvent(e.target.value)} onKeyPress={e => e.key === 'Enter' && addEvent()} placeholder="사건 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
+              <button onClick={addEvent} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+            </div>
+            <div className="space-y-2 mb-6">
+              {editData.events.map((e, i) => (
+                <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                  <span>{e}</span>
+                  <button onClick={() => removeEvent(i, e)} className="text-red-600"><Trash2 size={20} /></button>
                 </div>
               ))}
             </div>
-          </div>
-          <div>
-            <h3 className="font-medium mb-2">활동한 장소</h3>
-            <div className="space-y-2">
-              {editData.places.map(pl => (
-                <div key={pl} className="flex items-center gap-2">
-                  <input type="checkbox" checked={(editData.connections[selectedPerson]?.places || []).includes(pl)} onChange={() => toggleConnection(selectedPerson, 'places', pl)} className="w-4 h-4" />
-                  {pl}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
-      <h2 className="text-xl font-semibold mb-4 mt-8">📋 사건 상세</h2>
-      {editData.events.map(event => (
-        <div key={event} className="mb-6 bg-white p-4 rounded-lg">
-          <h3 className="text-lg font-bold mb-4">{event}</h3>
-
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">배경</h4>
-            <div className="flex gap-2 mb-2">
-              <input
-                value={newSub[`${event}-background`] || ''}
-                onChange={e => setNewSub({ ...newSub, [`${event}-background`]: e.target.value })}
-                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'background', newSub[`${event}-background`])}
-                placeholder="배경 추가 (Enter)"
-                className="flex-1 p-3 border rounded-lg"
-              />
-              <button onClick={() => addSubItem(event, 'background', newSub[`${event}-background`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          onClick={() => toggleSection('places')}
+        >
+          📍 장소
+          <ChevronDown className={`transform ${openSections.places ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.places && (
+          <>
+            <div className="flex gap-2 mb-4">
+              <input value={newPlace} onChange={e => setNewPlace(e.target.value)} onKeyPress={e => e.key === 'Enter' && addPlace()} placeholder="장소 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
+              <button onClick={addPlace} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
             </div>
-            <div className="space-y-2">
-              {(editData.eventDetails[event]?.background || []).map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span>{item}</span>
-                  <button onClick={() => removeSubItem(event, 'background', i)} className="text-red-600"><Trash2 size={16} /></button>
+            <div className="space-y-2 mb-6">
+              {editData.places.map((p, i) => (
+                <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                  <span>{p}</span>
+                  <button onClick={() => removePlace(i, p)} className="text-red-600"><Trash2 size={20} /></button>
                 </div>
               ))}
             </div>
-          </div>
+          </>
+        )}
+      </div>
 
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">전개</h4>
-            <div className="flex gap-2 mb-2">
-              <input
-                value={newSub[`${event}-development`] || ''}
-                onChange={e => setNewSub({ ...newSub, [`${event}-development`]: e.target.value })}
-                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'development', newSub[`${event}-development`])}
-                placeholder="전개 추가 (Enter)"
-                className="flex-1 p-3 border rounded-lg"
-              />
-              <button onClick={() => addSubItem(event, 'development', newSub[`${event}-development`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-            </div>
-            <div className="space-y-2">
-              {(editData.eventDetails[event]?.development || []).map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span>{item}</span>
-                  <button onClick={() => removeSubItem(event, 'development', i)} className="text-red-600"><Trash2 size={16} /></button>
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          onClick={() => toggleSection('connections')}
+        >
+          🔗 연결 관계
+          <ChevronDown className={`transform ${openSections.connections ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.connections && (
+          <>
+            <p className="mb-4">각 인물이 참여한 사건과 활동 장소를 선택하세요</p>
+            <select value={selectedPerson} onChange={e => setSelectedPerson(e.target.value)} className="w-full p-3 border rounded-lg mb-4">
+              <option>인물 선택</option>
+              {editData.people.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            {selectedPerson && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium mb-2">참여한 사건</h3>
+                  <div className="space-y-2">
+                    {editData.events.map(ev => (
+                      <div key={ev} className="flex items-center gap-2">
+                        <input type="checkbox" checked={(editData.connections[selectedPerson]?.events || []).includes(ev)} onChange={() => toggleConnection(selectedPerson, 'events', ev)} className="w-4 h-4" />
+                        {ev}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div>
+                  <h3 className="font-medium mb-2">활동한 장소</h3>
+                  <div className="space-y-2">
+                    {editData.places.map(pl => (
+                      <div key={pl} className="flex items-center gap-2">
+                        <input type="checkbox" checked={(editData.connections[selectedPerson]?.places || []).includes(pl)} onChange={() => toggleConnection(selectedPerson, 'places', pl)} className="w-4 h-4" />
+                        {pl}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">결과 및 의의</h4>
-            <div className="flex gap-2 mb-2">
-              <input
-                value={newSub[`${event}-result`] || ''}
-                onChange={e => setNewSub({ ...newSub, [`${event}-result`]: e.target.value })}
-                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'result', newSub[`${event}-result`])}
-                placeholder="결과 및 의의 추가 (Enter)"
-                className="flex-1 p-3 border rounded-lg"
-              />
-              <button onClick={() => addSubItem(event, 'result', newSub[`${event}-result`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-            </div>
-            <div className="space-y-2">
-              {(editData.eventDetails[event]?.result || []).map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span>{item}</span>
-                  <button onClick={() => removeSubItem(event, 'result', i)} className="text-red-600"><Trash2 size={16} /></button>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          onClick={() => toggleSection('eventDetails')}
+        >
+          📋 사건 상세
+          <ChevronDown className={`transform ${openSections.eventDetails ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.eventDetails && (
+          <>
+            {editData.events.map(event => (
+              <div key={event} className="mb-6 bg-white p-4 rounded-lg">
+                <h3 className="text-lg font-bold mb-4">{event}</h3>
 
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">특징</h4>
-            <div className="flex gap-2 mb-2">
-              <input
-                value={newSub[`${event}-features`] || ''}
-                onChange={e => setNewSub({ ...newSub, [`${event}-features`]: e.target.value })}
-                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'features', newSub[`${event}-features`])}
-                placeholder="특징 추가 (Enter)"
-                className="flex-1 p-3 border rounded-lg"
-              />
-              <button onClick={() => addSubItem(event, 'features', newSub[`${event}-features`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-            </div>
-            <div className="space-y-2">
-              {(editData.eventDetails[event]?.features || []).map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span>{item}</span>
-                  <button onClick={() => removeSubItem(event, 'features', i)} className="text-red-600"><Trash2 size={16} /></button>
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">배경</h4>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={newSub[`${event}-background`] || ''}
+                      onChange={e => setNewSub({ ...newSub, [`${event}-background`]: e.target.value })}
+                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'background', newSub[`${event}-background`])}
+                      placeholder="배경 추가 (Enter)"
+                      className="flex-1 p-3 border rounded-lg"
+                    />
+                    <button onClick={() => addSubItem(event, 'background', newSub[`${event}-background`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                  </div>
+                  <div className="space-y-2">
+                    {(editData.eventDetails[event]?.background || []).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>{item}</span>
+                        <button onClick={() => removeSubItem(event, 'background', i)} className="text-red-600"><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">연도</h4>
-            <div className="flex gap-2 mb-2">
-              <input
-                value={newSub[`${event}-years`] || ''}
-                onChange={e => setNewSub({ ...newSub, [`${event}-years`]: e.target.value })}
-                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'years', newSub[`${event}-years`])}
-                placeholder="연도 추가 (Enter)"
-                className="flex-1 p-3 border rounded-lg"
-              />
-              <button onClick={() => addSubItem(event, 'years', newSub[`${event}-years`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-            </div>
-            <div className="space-y-2">
-              {(editData.eventDetails[event]?.years || []).map((item, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span>{item}</span>
-                  <button onClick={() => removeSubItem(event, 'years', i)} className="text-red-600"><Trash2 size={16} /></button>
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">전개</h4>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={newSub[`${event}-development`] || ''}
+                      onChange={e => setNewSub({ ...newSub, [`${event}-development`]: e.target.value })}
+                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'development', newSub[`${event}-development`])}
+                      placeholder="전개 추가 (Enter)"
+                      className="flex-1 p-3 border rounded-lg"
+                    />
+                    <button onClick={() => addSubItem(event, 'development', newSub[`${event}-development`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                  </div>
+                  <div className="space-y-2">
+                    {(editData.eventDetails[event]?.development || []).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>{item}</span>
+                        <button onClick={() => removeSubItem(event, 'development', i)} className="text-red-600"><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      ))}
+
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">결과 및 의의</h4>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={newSub[`${event}-result`] || ''}
+                      onChange={e => setNewSub({ ...newSub, [`${event}-result`]: e.target.value })}
+                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'result', newSub[`${event}-result`])}
+                      placeholder="결과 및 의의 추가 (Enter)"
+                      className="flex-1 p-3 border rounded-lg"
+                    />
+                    <button onClick={() => addSubItem(event, 'result', newSub[`${event}-result`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                  </div>
+                  <div className="space-y-2">
+                    {(editData.eventDetails[event]?.result || []).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>{item}</span>
+                        <button onClick={() => removeSubItem(event, 'result', i)} className="text-red-600"><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">특징</h4>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={newSub[`${event}-features`] || ''}
+                      onChange={e => setNewSub({ ...newSub, [`${event}-features`]: e.target.value })}
+                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'features', newSub[`${event}-features`])}
+                      placeholder="특징 추가 (Enter)"
+                      className="flex-1 p-3 border rounded-lg"
+                    />
+                    <button onClick={() => addSubItem(event, 'features', newSub[`${event}-features`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                  </div>
+                  <div className="space-y-2">
+                    {(editData.eventDetails[event]?.features || []).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>{item}</span>
+                        <button onClick={() => removeSubItem(event, 'features', i)} className="text-red-600"><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">연도</h4>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={newSub[`${event}-years`] || ''}
+                      onChange={e => setNewSub({ ...newSub, [`${event}-years`]: e.target.value })}
+                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'years', newSub[`${event}-years`])}
+                      placeholder="연도 추가 (Enter)"
+                      className="flex-1 p-3 border rounded-lg"
+                    />
+                    <button onClick={() => addSubItem(event, 'years', newSub[`${event}-years`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                  </div>
+                  <div className="space-y-2">
+                    {(editData.eventDetails[event]?.years || []).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>{item}</span>
+                        <button onClick={() => removeSubItem(event, 'years', i)} className="text-red-600"><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
 
       <div className="flex gap-4 mt-8">
         <button onClick={onCancel} className="flex-1 bg-gray-200 p-4 rounded-lg font-bold">취소</button>
