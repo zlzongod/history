@@ -919,17 +919,21 @@ function App() {
   const [wrongQuestions, setWrongQuestions] = useState([]);
 
   useEffect(() => {
+    console.log('Auth state change triggered');
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        console.log('User logged in, fetching data from Firestore');
         const userDocRef = doc(db, 'users', currentUser.uid);
         getDoc(userDocRef).then((docSnap) => {
           if (docSnap.exists()) {
             const userData = docSnap.data();
+            console.log('Fetched data from Firestore:', userData.quizData);
             setData(userData.quizData || initialData);
             setCorrectCounts(userData.userProgress?.correctCounts || {});
             setWrongQuestions(userData.userProgress?.wrongQuestions || []);
           } else {
+            console.log('No data in Firestore, initializing with empty data');
             setDoc(userDocRef, { quizData: initialData, userProgress: { correctCounts: {}, wrongQuestions: [] } });
             setData(initialData);
             setCorrectCounts({});
@@ -939,6 +943,7 @@ function App() {
           console.error("Error fetching user data:", error);
         });
       } else {
+        console.log('User logged out, resetting to initialData');
         setData(initialData);
         setCorrectCounts({});
         setWrongQuestions([]);
@@ -949,11 +954,14 @@ function App() {
 
   useEffect(() => {
     if (user) {
+      console.log('Saving data to Firestore:', data);
       const userDocRef = doc(db, 'users', user.uid);
       setDoc(userDocRef, {
         quizData: data,
         userProgress: { correctCounts, wrongQuestions }
-      }, { merge: true }).catch((error) => {
+      }, { merge: true }).then(() => {
+        console.log('Successfully saved to Firestore');
+      }).catch((error) => {
         console.error("Error saving to Firebase:", error);
       });
     }
