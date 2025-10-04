@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BookOpen, Edit, ChevronRight, Check, X, Home, Plus, Trash2, Save, LogOut, RefreshCw, ChevronDown } from 'lucide-react';
 import './App.css';
 
@@ -913,10 +913,11 @@ function App() {
   const [selected, setSelected] = useState([]);
   const [showAnswer, setShowAnswer] = useState(false);
   const [results, setResults] = useState([]);
-  const [generatedQuestions, setGeneratedQuestions] = useState(new Set()); // To track unique questions
+  const [generatedQuestions, setGeneratedQuestions] = useState(new Set());
   const [showExitModal, setShowExitModal] = useState(false);
   const [correctCounts, setCorrectCounts] = useState({});
   const [wrongQuestions, setWrongQuestions] = useState([]);
+  const isFetchingRef = useRef(false);  // 추가
 
   useEffect(() => {
     console.log('Auth state change triggered');
@@ -924,6 +925,7 @@ function App() {
       setUser(currentUser);
       if (currentUser) {
         console.log('User logged in, fetching data from Firestore');
+        isFetchingRef.current = true;  // fetch 시작
         const userDocRef = doc(db, 'users', currentUser.uid);
         getDoc(userDocRef).then((docSnap) => {
           if (docSnap.exists()) {
@@ -939,8 +941,13 @@ function App() {
             setCorrectCounts({});
             setWrongQuestions([]);
           }
+          // fetch 완료 후 플래그 해제
+          setTimeout(() => {
+            isFetchingRef.current = false;
+          }, 100);
         }).catch((error) => {
           console.error("Error fetching user data:", error);
+          isFetchingRef.current = false;
         });
       } else {
         console.log('User logged out, resetting to initialData');
@@ -953,7 +960,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    // fetch 중이면 저장하지 않음
+    if (user && !isFetchingRef.current) {
       console.log('Saving data to Firestore:', data);
       const userDocRef = doc(db, 'users', user.uid);
       setDoc(userDocRef, {
@@ -985,7 +993,7 @@ function App() {
   const generateQuiz = () => {
     const unit = data.units[settings.unit];
     const questions = [];
-    const typeWeights = {  // 유형 다양성: 가중치 추가 (반복 방지)
+    const typeWeights = {
       'person-event': 1,
       'person-place': 1,
       'person-group': 1,
@@ -994,11 +1002,11 @@ function App() {
       'group-person': 1.2,
       'group-activity': 1.5,
       'event-background': 1.5,
-      'event-development': 2,  // 전개 문제 가중치 높임 (오류 수정 후)
+      'event-development': 2,
       'event-result': 1.5,
       'event-features': 1.5,
       'event-year': 1,
-      'institution-features': 2,  // 새 타입 가중치 높임
+      'institution-features': 2,
       'person-institution': 1.8
     };
     const totalWeight = Object.values(typeWeights).reduce((a, b) => a + b, 0);
@@ -1048,7 +1056,7 @@ function App() {
   };
 
   const generateQuestion = (type, unit, data) => {
-    const distractorCount = Math.floor(Math.random() * 3) + 7;  // 7~9개 distractors (총 options 8~10+answer)
+    const distractorCount = Math.floor(Math.random() * 3) + 7;
     if (type === 'person-event') {
       const person = unit.people[Math.floor(Math.random() * unit.people.length)];
       const events = unit.connections[person]?.events || [];
@@ -1143,10 +1151,10 @@ function App() {
     } else if (type === 'event-development') {
       const event = unit.events[Math.floor(Math.random() * unit.events.length)];
       const developments = unit.eventDetails?.[event]?.development || [];
-      if (developments.length < 3) return null;  // 최소 3개 이상으로 제한하여 순서 문제 명확히
-      const k = Math.min(3, developments.length);  // 최대 3개로 제한하여 순서 배열 용이
+      if (developments.length < 3) return null;
+      const k = Math.min(3, developments.length);
       const start = Math.floor(Math.random() * (developments.length - k + 1));
-      const answer = developments.slice(start, start + k);  // 연속 순서 유지
+      const answer = developments.slice(start, start + k);
       const unitAllDevelopments = unit.events.flatMap(e => unit.eventDetails?.[e]?.development || []);
       const nonAnswer = unitAllDevelopments.filter(d => !answer.includes(d));
       const globalNonUnit = data.allEventItems.developments.filter(d => !unitAllDevelopments.includes(d));
@@ -1189,7 +1197,7 @@ function App() {
       const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건 연도', question: `'${event}'이 발생한 연도를 모두 고르시오.`, options, answer };
-    } else if (type === 'institution-features') {  // 새로 추가: 제도 특징 문제
+    } else if (type === 'institution-features') {
       const institution = unit.institutions[Math.floor(Math.random() * unit.institutions.length)];
       const features = unit.institutionDetails?.[institution]?.features || [];
       if (features.length === 0) return null;
@@ -1201,7 +1209,7 @@ function App() {
       const distractors = [...nonAnswer.sort(() => 0.5 - Math.random()).slice(0, Math.floor(distractorCount / 2)), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, distractorCount - Math.floor(distractorCount / 2))];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '제도 특징', question: `'${institution}'의 특징으로 올바른 것을 모두 고르시오.`, options, answer };
-    } else if (type === 'person-institution') {  // 새로 추가: 인물-제도 문제
+    } else if (type === 'person-institution') {
       const person = unit.people[Math.floor(Math.random() * unit.people.length)];
       const institutions = unit.connections[person]?.institutions || [];
       if (institutions.length === 0) return null;
@@ -1295,26 +1303,26 @@ function App() {
       events: unitData.events, 
       places: unitData.places, 
       groups: unitData.groups,
-      institutions: unitData.institutions,  // 새로 추가
+      institutions: unitData.institutions,
       connections: unitData.connections,
       eventDetails: unitData.eventDetails,
       groupDetails: unitData.groupDetails,
-      institutionDetails: unitData.institutionDetails  // 새로 추가
+      institutionDetails: unitData.institutionDetails
     }};
     const allPeopleSet = new Set();
     const allGroupsSet = new Set();
-    const allInstitutionsSet = new Set();  // 새로 추가
+    const allInstitutionsSet = new Set();
     const allBgSet = new Set();
     const allDevSet = new Set();
     const allResSet = new Set();
     const allFeatSet = new Set();
     const allYearsSet = new Set();
     const allActSet = new Set();
-    const allInstFeatSet = new Set();  // 새로 추가
+    const allInstFeatSet = new Set();
     Object.values(newUnits).forEach(u => {
       u.people.forEach(p => allPeopleSet.add(p));
       u.groups.forEach(g => allGroupsSet.add(g));
-      u.institutions.forEach(i => allInstitutionsSet.add(i));  // 새로 추가
+      u.institutions.forEach(i => allInstitutionsSet.add(i));
       Object.values(u.eventDetails || {}).forEach(d => {
         (d.background || []).forEach(b => allBgSet.add(b));
         (d.development || []).forEach(dev => allDevSet.add(dev));
@@ -1325,7 +1333,7 @@ function App() {
       Object.values(u.groupDetails || {}).forEach(d => {
         (d.activities || []).forEach(a => allActSet.add(a));
       });
-      Object.values(u.institutionDetails || {}).forEach(d => {  // 새로 추가
+      Object.values(u.institutionDetails || {}).forEach(d => {
         (d.features || []).forEach(f => allInstFeatSet.add(f));
       });
     });
@@ -1333,7 +1341,7 @@ function App() {
       units: newUnits, 
       allPeople: Array.from(allPeopleSet), 
       allGroups: Array.from(allGroupsSet),
-      allInstitutions: Array.from(allInstitutionsSet),  // 새로 추가
+      allInstitutions: Array.from(allInstitutionsSet),
       allEventItems: {
         backgrounds: Array.from(allBgSet),
         developments: Array.from(allDevSet),
@@ -1344,7 +1352,7 @@ function App() {
       allGroupItems: {
         activities: Array.from(allActSet)
       },
-      allInstitutionItems: {  // 새로 추가
+      allInstitutionItems: {
         features: Array.from(allInstFeatSet)
       }
     };
@@ -1356,7 +1364,6 @@ function App() {
   if (!user) {
     return <AuthScreen />;
   }
-
   if (screen === 'home') {
     return (
       <div className="max-w-md mx-auto p-6 space-y-6">
@@ -1430,18 +1437,18 @@ function App() {
                     delete newUnits[key]; 
                     const allPeopleSet = new Set();
                     const allGroupsSet = new Set();
-                    const allInstitutionsSet = new Set();  // 새로 추가
+                    const allInstitutionsSet = new Set();
                     const allBgSet = new Set();
                     const allDevSet = new Set();
                     const allResSet = new Set();
                     const allFeatSet = new Set();
                     const allYearsSet = new Set();
                     const allActSet = new Set();
-                    const allInstFeatSet = new Set();  // 새로 추가
+                    const allInstFeatSet = new Set();
                     Object.values(newUnits).forEach(u => {
                       u.people.forEach(p => allPeopleSet.add(p));
                       u.groups.forEach(g => allGroupsSet.add(g));
-                      u.institutions.forEach(i => allInstitutionsSet.add(i));  // 새로 추가
+                      u.institutions.forEach(i => allInstitutionsSet.add(i));
                       Object.values(u.eventDetails || {}).forEach(d => {
                         (d.background || []).forEach(b => allBgSet.add(b));
                         (d.development || []).forEach(dev => allDevSet.add(dev));
@@ -1452,7 +1459,7 @@ function App() {
                       Object.values(u.groupDetails || {}).forEach(d => {
                         (d.activities || []).forEach(a => allActSet.add(a));
                       });
-                      Object.values(u.institutionDetails || {}).forEach(d => {  // 새로 추가
+                      Object.values(u.institutionDetails || {}).forEach(d => {
                         (d.features || []).forEach(f => allInstFeatSet.add(f));
                       });
                     });
@@ -1460,7 +1467,7 @@ function App() {
                       units: newUnits, 
                       allPeople: Array.from(allPeopleSet), 
                       allGroups: Array.from(allGroupsSet),
-                      allInstitutions: Array.from(allInstitutionsSet),  // 새로 추가
+                      allInstitutions: Array.from(allInstitutionsSet),
                       allEventItems: {
                         backgrounds: Array.from(allBgSet),
                         developments: Array.from(allDevSet),
@@ -1471,7 +1478,7 @@ function App() {
                       allGroupItems: {
                         activities: Array.from(allActSet)
                       },
-                      allInstitutionItems: {  // 새로 추가
+                      allInstitutionItems: {
                         features: Array.from(allInstFeatSet)
                       }
                     };
@@ -1527,7 +1534,7 @@ function App() {
           </div>
           <h1 className="text-xl font-bold mb-2">{settings.unit} | {q.type}</h1>
           <p className="mb-6">{q.question}</p>
-          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">  {/* 스크롤 추가: max-h-96 overflow-y-auto */}
+          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
             {q.options.map((option, idx) => {
               const isSelected = selected.includes(option);
               const isCorrect = q.answer.includes(option);
