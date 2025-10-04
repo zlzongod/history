@@ -34,11 +34,12 @@ const sampleData = {
       people: ["김구", "안창호", "이동녕", "이승만"],
       events: ["임시정부수립", "한인애국단조직"],
       places: ["상하이", "충칭"],
+      groups: ["임시정부", "한인애국단"],
       connections: {
-        "김구": { events: ["임시정부수립", "한인애국단조직"], places: ["상하이", "충칭"] },
-        "안창호": { events: ["임시정부수립"], places: ["상하이"] },
-        "이동녕": { events: ["임시정부수립"], places: ["상하이"] },
-        "이승만": { events: ["임시정부수립"], places: ["상하이"] }
+        "김구": { events: ["임시정부수립", "한인애국단조직"], places: ["상하이", "충칭"], groups: ["임시정부", "한인애국단"] },
+        "안창호": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"] },
+        "이동녕": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"] },
+        "이승만": { events: ["임시정부수립"], places: ["상하이"], groups: ["임시정부"] }
       },
       eventDetails: {
         "임시정부수립": {
@@ -55,6 +56,14 @@ const sampleData = {
           features: ["무장투쟁 단체", "의열투쟁 조직"],
           years: ["1931"]
         }
+      },
+      groupDetails: {
+        "임시정부": {
+          activities: ["독립운동 기반 마련", "국제적 인정 노력"]
+        },
+        "한인애국단": {
+          activities: ["항일 의거 실행", "의열투쟁"]
+        }
       }
     },
     "2단원": {
@@ -62,10 +71,11 @@ const sampleData = {
       people: ["안중근", "윤봉길", "이봉창"],
       events: ["이토히로부미저격", "윤봉길의거", "이봉창의거"],
       places: ["하얼빈", "상하이", "도쿄"],
+      groups: ["의열단"],
       connections: {
-        "안중근": { events: ["이토히로부미저격"], places: ["하얼빈"] },
-        "윤봉길": { events: ["윤봉길의거"], places: ["상하이"] },
-        "이봉창": { events: ["이봉창의거"], places: ["도쿄"] }
+        "안중근": { events: ["이토히로부미저격"], places: ["하얼빈"], groups: ["의열단"] },
+        "윤봉길": { events: ["윤봉길의거"], places: ["상하이"], groups: ["의열단"] },
+        "이봉창": { events: ["이봉창의거"], places: ["도쿄"], groups: ["의열단"] }
       },
       eventDetails: {
         "이토히로부미저격": {
@@ -89,16 +99,25 @@ const sampleData = {
           features: ["도쿄 의거", "일왕 투탄 시도"],
           years: ["1932"]
         }
+      },
+      groupDetails: {
+        "의열단": {
+          activities: ["항일 무장투쟁", "의거 실행"]
+        }
       }
     }
   },
   allPeople: ["김구", "안창호", "이동녕", "이승만", "안중근", "윤봉길", "이봉창", "이순신", "세종대왕", "신사임당"],
+  allGroups: ["임시정부", "한인애국단", "의열단"],
   allEventItems: {
     backgrounds: ["3.1 운동", "일제 강점기 해외 독립운동 필요", "임시정부의 무장투쟁 필요", "일제 침략 강화", "을사늑약 체결", "일제의 한국 침략", "상하이 임시정부 활동", "일제 만주 침략", "임시정부 한인애국단", "천황 암살 시도"],
     developments: ["독립운동가 상하이 집결", "임시의정원 구성", "임시헌장 제정", "정부 조직", "김구 주도 조직", "단원 모집", "의열투쟁 계획", "안중근의 결의", "하얼빈 이동", "저격 실행", "체포", "폭탄 제조", "홍커우 공원 투척", "도쿄 이동", "폭탄 투척", "실패 및 체포"],
     results: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "국민 항일 의식 고취", "국제적 주목", "항일 의지 표출", "일제 충격", "중국인 지지 확대", "항일 운동 고무", "국제 여론 환기"],
     features: ["민주공화제 수립", "임시헌장 제정", "무장투쟁 단체", "의열투쟁 조직", "하얼빈 의거", "안중근 의사 활동", "홍커우 공원 폭탄 투척", "상하이 의거", "도쿄 의거", "일왕 투탄 시도"],
     years: ["1919", "1931", "1909", "1932"]
+  },
+  allGroupItems: {
+    activities: ["독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "의열투쟁", "항일 무장투쟁", "의거 실행"]
   }
 };
 
@@ -227,23 +246,51 @@ function AuthScreen() {
 }
 
 function UnitEditor({ unit, onSave, onCancel }) {
-  const [editData, setEditData] = useState({ ...unit, eventDetails: unit.eventDetails || {} });
+  const [editData, setEditData] = useState({ ...unit, eventDetails: unit.eventDetails || {}, groupDetails: unit.groupDetails || {}, groups: unit.groups || [] });
   const [newPerson, setNewPerson] = useState('');
   const [newEvent, setNewEvent] = useState('');
   const [newPlace, setNewPlace] = useState('');
+  const [newGroup, setNewGroup] = useState('');
   const [newSub, setNewSub] = useState({});
+  const [newActivity, setNewActivity] = useState({});
   const [selectedPerson, setSelectedPerson] = useState('');
   const [openSections, setOpenSections] = useState({
     basic: false,
     people: false,
     events: false,
     places: false,
+    groups: false,
     connections: false,
-    eventDetails: false
+    eventDetails: false,
+    groupDetails: false
   });
+  const [openEvents, setOpenEvents] = useState({});
+  const [openGroups, setOpenGroups] = useState({});
+
+  useEffect(() => {
+    const initialOpenEvents = {};
+    editData.events.forEach(ev => {
+      initialOpenEvents[ev] = false;
+    });
+    setOpenEvents(initialOpenEvents);
+
+    const initialOpenGroups = {};
+    editData.groups.forEach(gr => {
+      initialOpenGroups[gr] = false;
+    });
+    setOpenGroups(initialOpenGroups);
+  }, [editData.events, editData.groups]);
 
   const toggleSection = (section) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const toggleEvent = (event) => {
+    setOpenEvents(prev => ({ ...prev, [event]: !prev[event] }));
+  };
+
+  const toggleGroup = (group) => {
+    setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }));
   };
 
   const addPerson = () => {
@@ -254,7 +301,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
       people: [...editData.people, np],
       connections: {
         ...editData.connections,
-        [np]: { events: [], places: [] }
+        [np]: { events: [], places: [], groups: [] }
       }
     });
     setNewPerson('');
@@ -281,6 +328,20 @@ function UnitEditor({ unit, onSave, onCancel }) {
     setNewPlace('');
   };
 
+  const addGroup = () => {
+    const ng = newGroup.trim();
+    if (!ng) return;
+    setEditData({
+      ...editData,
+      groups: [...editData.groups, ng],
+      groupDetails: {
+        ...editData.groupDetails,
+        [ng]: { activities: [] }
+      }
+    });
+    setNewGroup('');
+  };
+
   const addSubItem = (event, type, value) => {
     const nv = value.trim();
     if (!nv) return;
@@ -301,8 +362,28 @@ function UnitEditor({ unit, onSave, onCancel }) {
     setEditData({ ...editData, eventDetails: newDetails });
   };
 
+  const addActivityItem = (group, value) => {
+    const nv = value.trim();
+    if (!nv) return;
+    const newDetails = { ...editData.groupDetails };
+    const det = { ...newDetails[group] };
+    det.activities = [...(det.activities || []), nv];
+    newDetails[group] = det;
+    setEditData({ ...editData, groupDetails: newDetails });
+    const key = `${group}-activities`;
+    setNewActivity({ ...newActivity, [key]: '' });
+  };
+
+  const removeActivityItem = (group, index) => {
+    const newDetails = { ...editData.groupDetails };
+    const det = { ...newDetails[group] };
+    det.activities = det.activities.filter((_, i) => i !== index);
+    newDetails[group] = det;
+    setEditData({ ...editData, groupDetails: newDetails });
+  };
+
   const toggleConnection = (person, type, value) => {
-    const conn = editData.connections[person] || { events: [], places: [] };
+    const conn = editData.connections[person] || { events: [], places: [], groups: [] };
     const list = conn[type] || [];
     const newList = list.includes(value) ? list.filter(v => v !== value) : [...list, value];
     setEditData({
@@ -339,6 +420,17 @@ function UnitEditor({ unit, onSave, onCancel }) {
       newConn[p].places = newConn[p].places.filter(p => p !== pl);
     });
     setEditData({ ...editData, places: newPlaces, connections: newConn });
+  };
+
+  const removeGroup = (index, gr) => {
+    const newGroups = editData.groups.filter((_, i) => i !== index);
+    const newConn = { ...editData.connections };
+    Object.keys(newConn).forEach(p => {
+      newConn[p].groups = newConn[p].groups.filter(g => g !== gr);
+    });
+    const newDetails = { ...editData.groupDetails };
+    delete newDetails[gr];
+    setEditData({ ...editData, groups: newGroups, connections: newConn, groupDetails: newDetails });
   };
 
   return (
@@ -445,6 +537,32 @@ function UnitEditor({ unit, onSave, onCancel }) {
       <div className="mb-6">
         <h2 
           className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
+          onClick={() => toggleSection('groups')}
+        >
+          👥 집단
+          <ChevronDown className={`transform ${openSections.groups ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.groups && (
+          <>
+            <div className="flex gap-2 mb-4">
+              <input value={newGroup} onChange={e => setNewGroup(e.target.value)} onKeyPress={e => e.key === 'Enter' && addGroup()} placeholder="집단 이름 (Enter)" className="flex-1 p-3 border rounded-lg" />
+              <button onClick={addGroup} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+            </div>
+            <div className="space-y-2 mb-6">
+              {editData.groups.map((g, i) => (
+                <div key={i} className="flex justify-between items-center bg-white p-3 rounded-lg">
+                  <span>{g}</span>
+                  <button onClick={() => removeGroup(i, g)} className="text-red-600"><Trash2 size={20} /></button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('connections')}
         >
           🔗 연결 관계
@@ -452,7 +570,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
         </h2>
         {openSections.connections && (
           <>
-            <p className="mb-4">각 인물이 참여한 사건과 활동 장소를 선택하세요</p>
+            <p className="mb-4">각 인물이 참여한 사건, 활동 장소, 속한 집단을 선택하세요</p>
             <select value={selectedPerson} onChange={e => setSelectedPerson(e.target.value)} className="w-full p-3 border rounded-lg mb-4">
               <option>인물 선택</option>
               {editData.people.map(p => <option key={p} value={p}>{p}</option>)}
@@ -481,6 +599,17 @@ function UnitEditor({ unit, onSave, onCancel }) {
                     ))}
                   </div>
                 </div>
+                <div>
+                  <h3 className="font-medium mb-2">속한 집단</h3>
+                  <div className="space-y-2">
+                    {editData.groups.map(gr => (
+                      <div key={gr} className="flex items-center gap-2">
+                        <input type="checkbox" checked={(editData.connections[selectedPerson]?.groups || []).includes(gr)} onChange={() => toggleConnection(selectedPerson, 'groups', gr)} className="w-4 h-4" />
+                        {gr}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </>
@@ -498,118 +627,177 @@ function UnitEditor({ unit, onSave, onCancel }) {
         {openSections.eventDetails && (
           <>
             {editData.events.map(event => (
-              <div key={event} className="mb-6 bg-white p-4 rounded-lg">
-                <h3 className="text-lg font-bold mb-4">{event}</h3>
-
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">배경</h4>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      value={newSub[`${event}-background`] || ''}
-                      onChange={e => setNewSub({ ...newSub, [`${event}-background`]: e.target.value })}
-                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'background', newSub[`${event}-background`])}
-                      placeholder="배경 추가 (Enter)"
-                      className="flex-1 p-3 border rounded-lg"
-                    />
-                    <button onClick={() => addSubItem(event, 'background', newSub[`${event}-background`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-                  </div>
-                  <div className="space-y-2">
-                    {(editData.eventDetails[event]?.background || []).map((item, i) => (
-                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                        <span>{item}</span>
-                        <button onClick={() => removeSubItem(event, 'background', i)} className="text-red-600"><Trash2 size={16} /></button>
+              <div key={event} className="mb-6">
+                <h3 
+                  className="text-lg font-bold mb-4 flex items-center justify-between cursor-pointer bg-white p-4 rounded-lg"
+                  onClick={() => toggleEvent(event)}
+                >
+                  {event}
+                  <ChevronDown className={`transform ${openEvents[event] ? 'rotate-180' : ''} transition-transform`} size={20} />
+                </h3>
+                {openEvents[event] && (
+                  <div className="bg-white p-4 rounded-lg mt-2">
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">배경</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newSub[`${event}-background`] || ''}
+                          onChange={e => setNewSub({ ...newSub, [`${event}-background`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'background', newSub[`${event}-background`])}
+                          placeholder="배경 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addSubItem(event, 'background', newSub[`${event}-background`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">전개</h4>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      value={newSub[`${event}-development`] || ''}
-                      onChange={e => setNewSub({ ...newSub, [`${event}-development`]: e.target.value })}
-                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'development', newSub[`${event}-development`])}
-                      placeholder="전개 추가 (Enter)"
-                      className="flex-1 p-3 border rounded-lg"
-                    />
-                    <button onClick={() => addSubItem(event, 'development', newSub[`${event}-development`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-                  </div>
-                  <div className="space-y-2">
-                    {(editData.eventDetails[event]?.development || []).map((item, i) => (
-                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                        <span>{item}</span>
-                        <button onClick={() => removeSubItem(event, 'development', i)} className="text-red-600"><Trash2 size={16} /></button>
+                      <div className="space-y-2">
+                        {(editData.eventDetails[event]?.background || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeSubItem(event, 'background', i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">결과 및 의의</h4>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      value={newSub[`${event}-result`] || ''}
-                      onChange={e => setNewSub({ ...newSub, [`${event}-result`]: e.target.value })}
-                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'result', newSub[`${event}-result`])}
-                      placeholder="결과 및 의의 추가 (Enter)"
-                      className="flex-1 p-3 border rounded-lg"
-                    />
-                    <button onClick={() => addSubItem(event, 'result', newSub[`${event}-result`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-                  </div>
-                  <div className="space-y-2">
-                    {(editData.eventDetails[event]?.result || []).map((item, i) => (
-                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                        <span>{item}</span>
-                        <button onClick={() => removeSubItem(event, 'result', i)} className="text-red-600"><Trash2 size={16} /></button>
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">전개</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newSub[`${event}-development`] || ''}
+                          onChange={e => setNewSub({ ...newSub, [`${event}-development`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'development', newSub[`${event}-development`])}
+                          placeholder="전개 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addSubItem(event, 'development', newSub[`${event}-development`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div className="space-y-2">
+                        {(editData.eventDetails[event]?.development || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeSubItem(event, 'development', i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">특징</h4>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      value={newSub[`${event}-features`] || ''}
-                      onChange={e => setNewSub({ ...newSub, [`${event}-features`]: e.target.value })}
-                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'features', newSub[`${event}-features`])}
-                      placeholder="특징 추가 (Enter)"
-                      className="flex-1 p-3 border rounded-lg"
-                    />
-                    <button onClick={() => addSubItem(event, 'features', newSub[`${event}-features`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-                  </div>
-                  <div className="space-y-2">
-                    {(editData.eventDetails[event]?.features || []).map((item, i) => (
-                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                        <span>{item}</span>
-                        <button onClick={() => removeSubItem(event, 'features', i)} className="text-red-600"><Trash2 size={16} /></button>
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">결과 및 의의</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newSub[`${event}-result`] || ''}
+                          onChange={e => setNewSub({ ...newSub, [`${event}-result`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'result', newSub[`${event}-result`])}
+                          placeholder="결과 및 의의 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addSubItem(event, 'result', newSub[`${event}-result`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div className="space-y-2">
+                        {(editData.eventDetails[event]?.result || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeSubItem(event, 'result', i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">연도</h4>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      value={newSub[`${event}-years`] || ''}
-                      onChange={e => setNewSub({ ...newSub, [`${event}-years`]: e.target.value })}
-                      onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'years', newSub[`${event}-years`])}
-                      placeholder="연도 추가 (Enter)"
-                      className="flex-1 p-3 border rounded-lg"
-                    />
-                    <button onClick={() => addSubItem(event, 'years', newSub[`${event}-years`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
-                  </div>
-                  <div className="space-y-2">
-                    {(editData.eventDetails[event]?.years || []).map((item, i) => (
-                      <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                        <span>{item}</span>
-                        <button onClick={() => removeSubItem(event, 'years', i)} className="text-red-600"><Trash2 size={16} /></button>
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">특징</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newSub[`${event}-features`] || ''}
+                          onChange={e => setNewSub({ ...newSub, [`${event}-features`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'features', newSub[`${event}-features`])}
+                          placeholder="특징 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addSubItem(event, 'features', newSub[`${event}-features`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
                       </div>
-                    ))}
+                      <div className="space-y-2">
+                        {(editData.eventDetails[event]?.features || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeSubItem(event, 'features', i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">연도</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newSub[`${event}-years`] || ''}
+                          onChange={e => setNewSub({ ...newSub, [`${event}-years`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'years', newSub[`${event}-years`])}
+                          placeholder="연도 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addSubItem(event, 'years', newSub[`${event}-years`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                      </div>
+                      <div className="space-y-2">
+                        {(editData.eventDetails[event]?.years || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeSubItem(event, 'years', i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h2 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
+          onClick={() => toggleSection('groupDetails')}
+        >
+          👥 집단 상세
+          <ChevronDown className={`transform ${openSections.groupDetails ? 'rotate-180' : ''} transition-transform`} size={20} />
+        </h2>
+        {openSections.groupDetails && (
+          <>
+            {editData.groups.map(group => (
+              <div key={group} className="mb-6">
+                <h3 
+                  className="text-lg font-bold mb-4 flex items-center justify-between cursor-pointer bg-white p-4 rounded-lg"
+                  onClick={() => toggleGroup(group)}
+                >
+                  {group}
+                  <ChevronDown className={`transform ${openGroups[group] ? 'rotate-180' : ''} transition-transform`} size={20} />
+                </h3>
+                {openGroups[group] && (
+                  <div className="bg-white p-4 rounded-lg mt-2">
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">활동</h4>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          value={newActivity[`${group}-activities`] || ''}
+                          onChange={e => setNewActivity({ ...newActivity, [`${group}-activities`]: e.target.value })}
+                          onKeyPress={e => e.key === 'Enter' && addActivityItem(group, newActivity[`${group}-activities`])}
+                          placeholder="활동 추가 (Enter)"
+                          className="flex-1 p-3 border rounded-lg"
+                        />
+                        <button onClick={() => addActivityItem(group, newActivity[`${group}-activities`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+                      </div>
+                      <div className="space-y-2">
+                        {(editData.groupDetails[group]?.activities || []).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                            <span>{item}</span>
+                            <button onClick={() => removeActivityItem(group, i)} className="text-red-600"><Trash2 size={16} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </>
@@ -686,7 +874,8 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      setDoc(doc(db, 'users', user.uid), {
+      const userDocRef = doc(db, 'users', user.uid);
+      setDoc(userDocRef, {
         quizData: data,
         userProgress: { correctCounts, wrongQuestions }
       }, { merge: true });
@@ -695,7 +884,6 @@ function App() {
 
   const handleLogout = () => {
     signOut(auth);
-    setData(sampleData);
     setCorrectCounts({});
     setWrongQuestions([]);
   };
@@ -712,7 +900,7 @@ function App() {
   const generateQuiz = () => {
     const unit = data.units[settings.unit];
     const questions = [];
-    const types = ['person-event', 'person-place', 'event-person', 'event-place', 'event-background', 'event-development', 'event-result', 'event-features', 'event-year'];
+    const types = ['person-event', 'person-place', 'person-group', 'event-person', 'event-place', 'group-person', 'group-activity', 'event-background', 'event-development', 'event-result', 'event-features', 'event-year'];
     const newGenerated = new Set();
 
     while (questions.length < settings.questionCount) {
@@ -757,7 +945,7 @@ function App() {
       const k = Math.floor(Math.random() * events.length) + 1;
       const answer = events.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.events.filter(e => !answer.includes(e));
-      const globalNonUnit = data.units[Object.keys(data.units).find(u => u !== settings.unit)]?.events || [];
+      const globalNonUnit = Object.values(data.units).flatMap(u => u.events || []).filter(e => !unit.events.includes(e));
       const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '인물-사건', question: `'${person}'이(가) 참여한 사건을 모두 고르시오.`, options, answer };
@@ -768,10 +956,21 @@ function App() {
       const k = Math.floor(Math.random() * places.length) + 1;
       const answer = places.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.places.filter(p => !answer.includes(p));
-      const globalNonUnit = data.units[Object.keys(data.units).find(u => u !== settings.unit)]?.places || [];
+      const globalNonUnit = Object.values(data.units).flatMap(u => u.places || []).filter(p => !unit.places.includes(p));
       const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '인물-장소', question: `'${person}'이(가) 활동한 장소를 모두 고르시오.`, options, answer };
+    } else if (type === 'person-group') {
+      const person = unit.people[Math.floor(Math.random() * unit.people.length)];
+      const groups = unit.connections[person]?.groups || [];
+      if (groups.length === 0) return null;
+      const k = Math.floor(Math.random() * groups.length) + 1;
+      const answer = groups.sort(() => 0.5 - Math.random()).slice(0, k);
+      const nonAnswer = unit.groups.filter(g => !answer.includes(g));
+      const globalNonUnit = data.allGroups.filter(g => !unit.groups.includes(g));
+      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '인물-집단', question: `'${person}'이(가) 속한 집단을 모두 고르시오.`, options, answer };
     } else if (type === 'event-person') {
       const event = unit.events[Math.floor(Math.random() * unit.events.length)];
       const people = unit.people.filter(p => unit.connections[p]?.events.includes(event));
@@ -791,10 +990,33 @@ function App() {
       const k = Math.floor(Math.random() * places.length) + 1;
       const answer = places.sort(() => 0.5 - Math.random()).slice(0, k);
       const nonAnswer = unit.places.filter(p => !answer.includes(p));
-      const globalNonUnit = data.units[Object.keys(data.units).find(u => u !== settings.unit)]?.places || [];
+      const globalNonUnit = Object.values(data.units).flatMap(u => u.places || []).filter(p => !unit.places.includes(p));
       const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건-장소', question: `'${event}'이(가) 일어난 장소를 모두 고르시오.`, options, answer };
+    } else if (type === 'group-person') {
+      const group = unit.groups[Math.floor(Math.random() * unit.groups.length)];
+      const people = unit.people.filter(p => unit.connections[p]?.groups.includes(group));
+      if (people.length === 0) return null;
+      const k = Math.floor(Math.random() * people.length) + 1;
+      const answer = people.sort(() => 0.5 - Math.random()).slice(0, k);
+      const nonAnswer = unit.people.filter(p => !answer.includes(p));
+      const globalNonUnit = data.allPeople.filter(p => !unit.people.includes(p));
+      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '집단-인물', question: `'${group}'에 속한 인물을 모두 고르시오.`, options, answer };
+    } else if (type === 'group-activity') {
+      const group = unit.groups[Math.floor(Math.random() * unit.groups.length)];
+      const activities = unit.groupDetails?.[group]?.activities || [];
+      if (activities.length === 0) return null;
+      const k = Math.floor(Math.random() * Math.min(3, activities.length)) + 1;
+      const answer = activities.sort(() => 0.5 - Math.random()).slice(0, k);
+      const unitAllActivities = unit.groups.flatMap(g => unit.groupDetails?.[g]?.activities || []);
+      const nonAnswer = unitAllActivities.filter(a => !answer.includes(a));
+      const globalNonUnit = data.allGroupItems.activities.filter(a => !unitAllActivities.includes(a));
+      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '집단 활동', question: `'${group}'의 활동에 해당하는 것을 모두 고르시오.`, options, answer };
     } else if (type === 'event-background') {
       const event = unit.events[Math.floor(Math.random() * unit.events.length)];
       const backgrounds = unit.eventDetails?.[event]?.background || [];
@@ -938,17 +1160,22 @@ function App() {
       people: unitData.people, 
       events: unitData.events, 
       places: unitData.places, 
+      groups: unitData.groups,
       connections: unitData.connections,
-      eventDetails: unitData.eventDetails 
+      eventDetails: unitData.eventDetails,
+      groupDetails: unitData.groupDetails 
     }};
     const allPeopleSet = new Set();
+    const allGroupsSet = new Set();
     const allBgSet = new Set();
     const allDevSet = new Set();
     const allResSet = new Set();
     const allFeatSet = new Set();
     const allYearsSet = new Set();
+    const allActSet = new Set();
     Object.values(newUnits).forEach(u => {
       u.people.forEach(p => allPeopleSet.add(p));
+      u.groups.forEach(g => allGroupsSet.add(g));
       Object.values(u.eventDetails || {}).forEach(d => {
         (d.background || []).forEach(b => allBgSet.add(b));
         (d.development || []).forEach(dev => allDevSet.add(dev));
@@ -956,16 +1183,23 @@ function App() {
         (d.features || []).forEach(f => allFeatSet.add(f));
         (d.years || []).forEach(y => allYearsSet.add(y));
       });
+      Object.values(u.groupDetails || {}).forEach(d => {
+        (d.activities || []).forEach(a => allActSet.add(a));
+      });
     });
     const newData = { 
       units: newUnits, 
       allPeople: Array.from(allPeopleSet), 
+      allGroups: Array.from(allGroupsSet),
       allEventItems: {
         backgrounds: Array.from(allBgSet),
         developments: Array.from(allDevSet),
         results: Array.from(allResSet),
         features: Array.from(allFeatSet),
         years: Array.from(allYearsSet)
+      },
+      allGroupItems: {
+        activities: Array.from(allActSet)
       }
     };
     setData(newData);
@@ -1032,7 +1266,7 @@ function App() {
       <div className="max-w-md mx-auto p-6">
         <button onClick={() => setScreen('home')} className="mb-6 text-blue-600">← 뒤로</button>
         <h1 className="text-2xl font-bold mb-8">데이터 편집기</h1>
-        <button onClick={() => { setEditUnit({ key: '', title: '', people: [], events: [], places: [], connections: {}, eventDetails: {} }); setScreen('editor-edit'); }} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mb-6">
+        <button onClick={() => { setEditUnit({ key: '', title: '', people: [], events: [], places: [], groups: [], connections: {}, eventDetails: {}, groupDetails: {} }); setScreen('editor-edit'); }} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 mb-6">
           <Plus size={20} /> 새 단원
         </button>
         <div className="space-y-4">
@@ -1040,23 +1274,25 @@ function App() {
             <div key={key} className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
               <div>
                 <h2 className="font-bold">{key} - {unit.title}</h2>
-                <p className="text-sm text-gray-500">👤 {unit.people.length}명 · 📅 {unit.events.length}개 · 📍 {unit.places.length}개</p>
+                <p className="text-sm text-gray-500">👤 {unit.people.length}명 · 📅 {unit.events.length}개 · 📍 {unit.places.length}개 · 👥 {unit.groups.length}개</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => { setEditUnit({ key, ...unit }); setScreen('editor-edit'); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={20} /></button>
                 <button onClick={() => { 
-                  // eslint-disable-next-line no-restricted-globals
-                  if (confirm(`"${key}" 삭제?`)) { 
+                  if (window.confirm(`"${key}" 삭제?`)) { 
                     const newUnits = { ...data.units }; 
                     delete newUnits[key]; 
                     const allPeopleSet = new Set();
+                    const allGroupsSet = new Set();
                     const allBgSet = new Set();
                     const allDevSet = new Set();
                     const allResSet = new Set();
                     const allFeatSet = new Set();
                     const allYearsSet = new Set();
+                    const allActSet = new Set();
                     Object.values(newUnits).forEach(u => {
                       u.people.forEach(p => allPeopleSet.add(p));
+                      u.groups.forEach(g => allGroupsSet.add(g));
                       Object.values(u.eventDetails || {}).forEach(d => {
                         (d.background || []).forEach(b => allBgSet.add(b));
                         (d.development || []).forEach(dev => allDevSet.add(dev));
@@ -1064,16 +1300,23 @@ function App() {
                         (d.features || []).forEach(f => allFeatSet.add(f));
                         (d.years || []).forEach(y => allYearsSet.add(y));
                       });
+                      Object.values(u.groupDetails || {}).forEach(d => {
+                        (d.activities || []).forEach(a => allActSet.add(a));
+                      });
                     });
                     const newData = { 
                       units: newUnits, 
                       allPeople: Array.from(allPeopleSet), 
+                      allGroups: Array.from(allGroupsSet),
                       allEventItems: {
                         backgrounds: Array.from(allBgSet),
                         developments: Array.from(allDevSet),
                         results: Array.from(allResSet),
                         features: Array.from(allFeatSet),
                         years: Array.from(allYearsSet)
+                      },
+                      allGroupItems: {
+                        activities: Array.from(allActSet)
                       }
                     };
                     setData(newData);
