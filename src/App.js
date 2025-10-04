@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Edit, ChevronRight, Check, X, Home, Plus, Trash2, Save, LogOut } from 'lucide-react';
+import { BookOpen, Edit, ChevronRight, Check, X, Home, Plus, Trash2, Save, LogOut, RefreshCw } from 'lucide-react';
 import './App.css';
 
 // Firebase imports
@@ -44,12 +44,16 @@ const sampleData = {
         "임시정부수립": {
           background: ["3.1 운동", "일제 강점기 해외 독립운동 필요"],
           development: ["독립운동가 상하이 집결", "임시의정원 구성", "임시헌장 제정", "정부 조직"],
-          result: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력"]
+          result: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력"],
+          features: ["민주공화제 수립", "임시헌장 제정"],
+          years: ["1919"]
         },
         "한인애국단조직": {
           background: ["임시정부의 무장투쟁 필요", "일제 침략 강화"],
           development: ["김구 주도 조직", "단원 모집", "의열투쟁 계획"],
-          result: ["항일 의거 실행", "국민 항일 의식 고취"]
+          result: ["항일 의거 실행", "국민 항일 의식 고취"],
+          features: ["무장투쟁 단체", "의열투쟁 조직"],
+          years: ["1931"]
         }
       }
     },
@@ -67,17 +71,23 @@ const sampleData = {
         "이토히로부미저격": {
           background: ["을사늑약 체결", "일제의 한국 침략"],
           development: ["안중근의 결의", "하얼빈 이동", "저격 실행", "체포"],
-          result: ["국제적 주목", "항일 의지 표출"]
+          result: ["국제적 주목", "항일 의지 표출"],
+          features: ["하얼빈 의거", "안중근 의사 활동"],
+          years: ["1909"]
         },
         "윤봉길의거": {
           background: ["상하이 임시정부 활동", "일제 만주 침략"],
           development: ["폭탄 제조", "홍커우 공원 투척", "체포"],
-          result: ["일제 충격", "중국인 지지 확대"]
+          result: ["일제 충격", "중국인 지지 확대"],
+          features: ["홍커우 공원 폭탄 투척", "상하이 의거"],
+          years: ["1932"]
         },
         "이봉창의거": {
           background: ["임시정부 한인애국단", "천황 암살 시도"],
           development: ["도쿄 이동", "폭탄 투척", "실패 및 체포"],
-          result: ["항일 운동 고무", "국제 여론 환기"]
+          result: ["항일 운동 고무", "국제 여론 환기"],
+          features: ["도쿄 의거", "일왕 투탄 시도"],
+          years: ["1932"]
         }
       }
     }
@@ -86,7 +96,9 @@ const sampleData = {
   allEventItems: {
     backgrounds: ["3.1 운동", "일제 강점기 해외 독립운동 필요", "임시정부의 무장투쟁 필요", "일제 침략 강화", "을사늑약 체결", "일제의 한국 침략", "상하이 임시정부 활동", "일제 만주 침략", "임시정부 한인애국단", "천황 암살 시도"],
     developments: ["독립운동가 상하이 집결", "임시의정원 구성", "임시헌장 제정", "정부 조직", "김구 주도 조직", "단원 모집", "의열투쟁 계획", "안중근의 결의", "하얼빈 이동", "저격 실행", "체포", "폭탄 제조", "홍커우 공원 투척", "도쿄 이동", "폭탄 투척", "실패 및 체포"],
-    results: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "국민 항일 의식 고취", "국제적 주목", "항일 의지 표출", "일제 충격", "중국인 지지 확대", "항일 운동 고무", "국제 여론 환기"]
+    results: ["대한민국 임시정부 수립", "독립운동 기반 마련", "국제적 인정 노력", "항일 의거 실행", "국민 항일 의식 고취", "국제적 주목", "항일 의지 표출", "일제 충격", "중국인 지지 확대", "항일 운동 고무", "국제 여론 환기"],
+    features: ["민주공화제 수립", "임시헌장 제정", "무장투쟁 단체", "의열투쟁 조직", "하얼빈 의거", "안중근 의사 활동", "홍커우 공원 폭탄 투척", "상하이 의거", "도쿄 의거", "일왕 투탄 시도"],
+    years: ["1919", "1931", "1909", "1932"]
   }
 };
 
@@ -244,7 +256,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
       events: [...editData.events, ne],
       eventDetails: {
         ...editData.eventDetails,
-        [ne]: { background: [], development: [], result: [] }
+        [ne]: { background: [], development: [], result: [], features: [], years: [] }
       }
     });
     setNewEvent('');
@@ -262,7 +274,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
     if (!nv) return;
     const newDetails = { ...editData.eventDetails };
     const det = { ...newDetails[event] };
-    det[type] = [...det[type], nv];
+    det[type] = [...(det[type] || []), nv];
     newDetails[event] = det;
     setEditData({ ...editData, eventDetails: newDetails });
     const key = `${event}-${type}`;
@@ -452,7 +464,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
             </div>
           </div>
 
-          <div>
+          <div className="mb-4">
             <h4 className="font-medium mb-2">결과 및 의의</h4>
             <div className="flex gap-2 mb-2">
               <input
@@ -469,6 +481,50 @@ function UnitEditor({ unit, onSave, onCancel }) {
                 <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
                   <span>{item}</span>
                   <button onClick={() => removeSubItem(event, 'result', i)} className="text-red-600"><Trash2 size={16} /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <h4 className="font-medium mb-2">특징</h4>
+            <div className="flex gap-2 mb-2">
+              <input
+                value={newSub[`${event}-features`] || ''}
+                onChange={e => setNewSub({ ...newSub, [`${event}-features`]: e.target.value })}
+                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'features', newSub[`${event}-features`])}
+                placeholder="특징 추가 (Enter)"
+                className="flex-1 p-3 border rounded-lg"
+              />
+              <button onClick={() => addSubItem(event, 'features', newSub[`${event}-features`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+            </div>
+            <div className="space-y-2">
+              {(editData.eventDetails[event]?.features || []).map((item, i) => (
+                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                  <span>{item}</span>
+                  <button onClick={() => removeSubItem(event, 'features', i)} className="text-red-600"><Trash2 size={16} /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <h4 className="font-medium mb-2">연도</h4>
+            <div className="flex gap-2 mb-2">
+              <input
+                value={newSub[`${event}-years`] || ''}
+                onChange={e => setNewSub({ ...newSub, [`${event}-years`]: e.target.value })}
+                onKeyPress={e => e.key === 'Enter' && addSubItem(event, 'years', newSub[`${event}-years`])}
+                placeholder="연도 추가 (Enter)"
+                className="flex-1 p-3 border rounded-lg"
+              />
+              <button onClick={() => addSubItem(event, 'years', newSub[`${event}-years`])} className="bg-blue-600 text-white p-3 rounded-lg"><Plus size={20} /></button>
+            </div>
+            <div className="space-y-2">
+              {(editData.eventDetails[event]?.years || []).map((item, i) => (
+                <div key={i} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                  <span>{item}</span>
+                  <button onClick={() => removeSubItem(event, 'years', i)} className="text-red-600"><Trash2 size={16} /></button>
                 </div>
               ))}
             </div>
@@ -514,55 +570,94 @@ function App() {
   const [results, setResults] = useState([]);
   const [generatedQuestions, setGeneratedQuestions] = useState(new Set()); // To track unique questions
   const [showExitModal, setShowExitModal] = useState(false);
+  const [correctCounts, setCorrectCounts] = useState({});
+  const [wrongQuestions, setWrongQuestions] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const userDoc = doc(db, 'users', currentUser.uid);
-        getDoc(userDoc).then((docSnap) => {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        getDoc(userDocRef).then((docSnap) => {
           if (docSnap.exists()) {
-            setData(docSnap.data().quizData || sampleData);
+            const userData = docSnap.data();
+            setData(userData.quizData || sampleData);
+            setCorrectCounts(userData.userProgress?.correctCounts || {});
+            setWrongQuestions(userData.userProgress?.wrongQuestions || []);
           } else {
-            setDoc(userDoc, { quizData: sampleData });
+            setDoc(userDocRef, { quizData: sampleData, userProgress: { correctCounts: {}, wrongQuestions: [] } });
             setData(sampleData);
+            setCorrectCounts({});
+            setWrongQuestions([]);
           }
         });
       } else {
         setData(sampleData);
+        setCorrectCounts({});
+        setWrongQuestions([]);
       }
     });
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      setDoc(doc(db, 'users', user.uid), {
+        quizData: data,
+        userProgress: { correctCounts, wrongQuestions }
+      }, { merge: true });
+    }
+  }, [data, correctCounts, wrongQuestions, user]);
+
   const handleLogout = () => {
     signOut(auth);
     setData(sampleData);
+    setCorrectCounts({});
+    setWrongQuestions([]);
+  };
+
+  const getQuestionKey = (q) => {
+    return `${q.type}|${q.question}|${q.options.sort().join(',')}`;
   };
 
   const isQuestionUnique = (q) => {
-    const questionKey = `${q.type}|${q.question}|${q.options.sort().join(',')}`;
+    const questionKey = getQuestionKey(q);
     return !generatedQuestions.has(questionKey);
   };
 
   const generateQuiz = () => {
     const unit = data.units[settings.unit];
     const questions = [];
-    const types = ['person-event', 'person-place', 'event-person', 'event-place', 'event-background', 'event-development', 'event-result'];
+    const types = ['person-event', 'person-place', 'event-person', 'event-place', 'event-background', 'event-development', 'event-result', 'event-features', 'event-year'];
     const newGenerated = new Set();
 
     while (questions.length < settings.questionCount) {
       const type = types[Math.floor(Math.random() * types.length)];
       const q = generateQuestion(type, unit, data);
-      if (q && isQuestionUnique(q)) {
-        questions.push(q);
-        const questionKey = `${q.type}|${q.question}|${q.options.sort().join(',')}`;
-        newGenerated.add(questionKey);
+      if (q) {
+        const questionKey = getQuestionKey(q);
+        if (correctCounts[questionKey] >= 4) continue;
+        if (isQuestionUnique(q)) {
+          questions.push(q);
+          newGenerated.add(questionKey);
+        }
       }
     }
 
     setQuiz(questions);
     setGeneratedQuestions(newGenerated);
+    setCurrentQ(0);
+    setSelected([]);
+    setShowAnswer(false);
+    setResults([]);
+    setScreen('quiz');
+  };
+
+  const generateWrongQuiz = () => {
+    if (wrongQuestions.length === 0) return;
+    const shuffled = [...wrongQuestions].sort(() => Math.random() - 0.5);
+    setQuiz(shuffled);
+    setGeneratedQuestions(new Set(shuffled.map(getQuestionKey)));
     setCurrentQ(0);
     setSelected([]);
     setShowAnswer(false);
@@ -653,6 +748,30 @@ function App() {
       const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
       const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
       return { type: '사건 전개', question: `'${event}'의 전개 과정 중 해당하는 것을 모두 골라 올바른 순서로 배열하시오.`, options, answer };
+    } else if (type === 'event-features') {
+      const event = unit.events[Math.floor(Math.random() * unit.events.length)];
+      const features = unit.eventDetails?.[event]?.features || [];
+      if (features.length === 0) return null;
+      const k = Math.floor(Math.random() * Math.min(3, features.length)) + 1;
+      const answer = features.sort(() => 0.5 - Math.random()).slice(0, k);
+      const unitAllFeatures = unit.events.flatMap(e => unit.eventDetails?.[e]?.features || []);
+      const nonAnswer = unitAllFeatures.filter(f => !answer.includes(f));
+      const globalNonUnit = data.allEventItems.features.filter(f => !unitAllFeatures.includes(f));
+      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '사건 특징', question: `'${event}'의 특징으로 올바른 것을 모두 고르시오.`, options, answer };
+    } else if (type === 'event-year') {
+      const event = unit.events[Math.floor(Math.random() * unit.events.length)];
+      const years = unit.eventDetails?.[event]?.years || [];
+      if (years.length === 0) return null;
+      const k = Math.floor(Math.random() * years.length) + 1;
+      const answer = years.sort(() => 0.5 - Math.random()).slice(0, k);
+      const unitAllYears = unit.events.flatMap(e => unit.eventDetails?.[e]?.years || []);
+      const nonAnswer = unitAllYears.filter(y => !answer.includes(y));
+      const globalNonUnit = data.allEventItems.years.filter(y => !unitAllYears.includes(y));
+      const distractors = [...nonAnswer.slice(0, 3), ...globalNonUnit.sort(() => 0.5 - Math.random()).slice(0, 2)];
+      const options = [...answer, ...distractors].sort(() => 0.5 - Math.random());
+      return { type: '사건 연도', question: `'${event}'이 발생한 연도를 모두 고르시오.`, options, answer };
     }
   };
 
@@ -687,6 +806,19 @@ function App() {
     const correct = userAns.length === correctAns.length && userAns.every((v, i) => v === correctAns[i]);
     setResults([...results, correct]);
     setShowAnswer(true);
+
+    const questionKey = getQuestionKey(q);
+    if (correct) {
+      const newCount = (correctCounts[questionKey] || 0) + 1;
+      setCorrectCounts(prev => ({ ...prev, [questionKey]: newCount }));
+      if (wrongQuestions.some(wq => getQuestionKey(wq) === questionKey)) {
+        setWrongQuestions(prev => prev.filter(wq => getQuestionKey(wq) !== questionKey));
+      }
+    } else {
+      if (!wrongQuestions.some(wq => getQuestionKey(wq) === questionKey)) {
+        setWrongQuestions(prev => [...prev, q]);
+      }
+    }
   };
 
   const nextQuestion = () => {
@@ -695,20 +827,7 @@ function App() {
       setSelected([]);
       setShowAnswer(false);
     } else {
-      const wrongQuestions = [];
-      for (let i = 0; i < quiz.length; i++) {
-        if (!results[i]) {
-          wrongQuestions.push(quiz[i]);
-        }
-      }
-      if (wrongQuestions.length > 0) {
-        setQuiz([...quiz, ...wrongQuestions]);
-        setCurrentQ(currentQ + 1);
-        setSelected([]);
-        setShowAnswer(false);
-      } else {
-        setScreen('result');
-      }
+      setScreen('result');
     }
   };
 
@@ -742,12 +861,16 @@ function App() {
     const allBgSet = new Set();
     const allDevSet = new Set();
     const allResSet = new Set();
+    const allFeatSet = new Set();
+    const allYearsSet = new Set();
     Object.values(newUnits).forEach(u => {
       u.people.forEach(p => allPeopleSet.add(p));
       Object.values(u.eventDetails || {}).forEach(d => {
         (d.background || []).forEach(b => allBgSet.add(b));
         (d.development || []).forEach(dev => allDevSet.add(dev));
         (d.result || []).forEach(r => allResSet.add(r));
+        (d.features || []).forEach(f => allFeatSet.add(f));
+        (d.years || []).forEach(y => allYearsSet.add(y));
       });
     });
     const newData = { 
@@ -756,13 +879,12 @@ function App() {
       allEventItems: {
         backgrounds: Array.from(allBgSet),
         developments: Array.from(allDevSet),
-        results: Array.from(allResSet)
+        results: Array.from(allResSet),
+        features: Array.from(allFeatSet),
+        years: Array.from(allYearsSet)
       }
     };
     setData(newData);
-    if (user) {
-      setDoc(doc(db, 'users', user.uid), { quizData: newData });
-    }
     setEditUnit(null);
     setScreen('editor-list');
   };
@@ -784,6 +906,7 @@ function App() {
           </button>
         </div>
         <p className="text-center text-gray-600 mb-8">한국사를 재미있게 학습하세요</p>
+        <p className="text-sm text-gray-500 text-center">4번 맞춘 문제는 더 이상 등장하지 않습니다.</p>
         <button onClick={() => setScreen('settings')} className="w-full bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group">
           <div className="flex items-center gap-4">
             <BookOpen size={32} className="text-blue-600" />
@@ -794,6 +917,18 @@ function App() {
           </div>
           <ChevronRight size={24} className="text-gray-400 group-hover:text-blue-600" />
         </button>
+        {wrongQuestions.length > 0 && (
+          <button onClick={generateWrongQuiz} className="w-full bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group">
+            <div className="flex items-center gap-4">
+              <RefreshCw size={32} className="text-green-600" />
+              <div className="text-left">
+                <h2 className="font-bold text-lg">틀린 문제 연습</h2>
+                <p className="text-sm text-gray-500">{wrongQuestions.length} 문제</p>
+              </div>
+            </div>
+            <ChevronRight size={24} className="text-gray-400 group-hover:text-green-600" />
+          </button>
+        )}
         <button onClick={() => setScreen('editor-list')} className="w-full bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-between group">
           <div className="flex items-center gap-4">
             <Edit size={32} className="text-blue-600" />
@@ -834,12 +969,16 @@ function App() {
                     const allBgSet = new Set();
                     const allDevSet = new Set();
                     const allResSet = new Set();
+                    const allFeatSet = new Set();
+                    const allYearsSet = new Set();
                     Object.values(newUnits).forEach(u => {
                       u.people.forEach(p => allPeopleSet.add(p));
                       Object.values(u.eventDetails || {}).forEach(d => {
                         (d.background || []).forEach(b => allBgSet.add(b));
                         (d.development || []).forEach(dev => allDevSet.add(dev));
                         (d.result || []).forEach(r => allResSet.add(r));
+                        (d.features || []).forEach(f => allFeatSet.add(f));
+                        (d.years || []).forEach(y => allYearsSet.add(y));
                       });
                     });
                     const newData = { 
@@ -848,13 +987,12 @@ function App() {
                       allEventItems: {
                         backgrounds: Array.from(allBgSet),
                         developments: Array.from(allDevSet),
-                        results: Array.from(allResSet)
+                        results: Array.from(allResSet),
+                        features: Array.from(allFeatSet),
+                        years: Array.from(allYearsSet)
                       }
                     };
                     setData(newData);
-                    if (user) {
-                      setDoc(doc(db, 'users', user.uid), { quizData: newData });
-                    }
                   } 
                 }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
               </div>
