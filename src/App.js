@@ -4,7 +4,7 @@ import './App.css';
 
 // Firebase imports
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, sendEmailVerification } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'; // 변경: signInWithPopup 추가, signInWithRedirect와 getRedirectResult 제거
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 // Your Firebase configuration
@@ -56,18 +56,9 @@ function AuthScreen() {
   const [loading, setLoading] = useState(false);
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log('Google login successful:', result.user);
-        }
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-  }, []);
-  
+
+  // 변경: getRedirectResult 관련 useEffect 제거 (Popup 방식으로 변경하므로 필요 없음)
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -96,9 +87,12 @@ function AuthScreen() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithRedirect(auth, googleProvider);
+      // 변경: signInWithRedirect 대신 signInWithPopup 사용
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log('Google login successful:', result.user); // 성공 로그
     } catch (err) {
-      setError(err.message);
+      console.error('Google login error:', err); // 에러 로그 강화
+      setError(err.message || 'Google 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
