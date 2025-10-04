@@ -234,12 +234,12 @@ function UnitEditor({ unit, onSave, onCancel }) {
   const [newSub, setNewSub] = useState({});
   const [selectedPerson, setSelectedPerson] = useState('');
   const [openSections, setOpenSections] = useState({
-    basic: true,
-    people: true,
-    events: true,
-    places: true,
-    connections: true,
-    eventDetails: true
+    basic: false,
+    people: false,
+    events: false,
+    places: false,
+    connections: false,
+    eventDetails: false
   });
 
   const toggleSection = (section) => {
@@ -348,7 +348,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
 
       <div className="mb-6">
         <h2 
-          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('basic')}
         >
           기본 정보
@@ -366,7 +366,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
 
       <div className="mb-6">
         <h2 
-          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('people')}
         >
           👤 인물
@@ -392,7 +392,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
 
       <div className="mb-6">
         <h2 
-          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('events')}
         >
           📅 사건
@@ -418,7 +418,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
 
       <div className="mb-6">
         <h2 
-          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('places')}
         >
           📍 장소
@@ -444,7 +444,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
 
       <div className="mb-6">
         <h2 
-          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('connections')}
         >
           🔗 연결 관계
@@ -489,7 +489,7 @@ function UnitEditor({ unit, onSave, onCancel }) {
 
       <div className="mb-6">
         <h2 
-          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer" 
+          className="text-xl font-semibold mb-4 flex items-center justify-between cursor-pointer sticky top-0 bg-gray-50 z-10 py-2" 
           onClick={() => toggleSection('eventDetails')}
         >
           📋 사건 상세
