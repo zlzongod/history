@@ -4,7 +4,7 @@ import './App.css';
 
 // Firebase imports
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'; // 변경: signInWithPopup 추가, signInWithRedirect와 getRedirectResult 제거
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth'; // 변경: sendEmailVerification 추가
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 // Your Firebase configuration
@@ -57,8 +57,6 @@ function AuthScreen() {
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
-  // 변경: getRedirectResult 관련 useEffect 제거 (Popup 방식으로 변경하므로 필요 없음)
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -87,7 +85,6 @@ function AuthScreen() {
 
   const handleGoogleSignIn = async () => {
     try {
-      // 변경: signInWithRedirect 대신 signInWithPopup 사용
       const result = await signInWithPopup(auth, googleProvider);
       console.log('Google login successful:', result.user); // 성공 로그
     } catch (err) {
@@ -442,7 +439,10 @@ function UnitEditor({ unit, onSave, onCancel }) {
             <label className="block mb-2 font-medium">단원명</label>
             <input value={editData.key} onChange={e => setEditData({ ...editData, key: e.target.value })} placeholder="예: 1단원" className="w-full p-3 border rounded-lg mb-4" disabled={!!unit.key} />
             <label className="block mb-2 font-medium">제목</label>
-            <input value={editData.title} onChange={e => setEditData({ ...editData, title: e.target.value })} placeholder="예: 대한민국 임시정부" className="w-full p-3 border rounded-lg mb-6" />
+            <input value={editData.title} onChange={e => setEditData({ ...editData, title: e.target.value })} placeholder="제목 입력" className="w-full p-3 border rounded-lg mb-4" />
+            <button onClick={() => onSave(editData)} className="w-full bg-green-600 text-white p-4 rounded-lg font-bold flex items-center justify-center gap-2">
+              <Save size={20} /> 저장
+            </button>
           </>
         )}
       </div>
