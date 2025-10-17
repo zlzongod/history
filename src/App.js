@@ -17,7 +17,7 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(FIREBASE_CONFIG);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -236,7 +236,7 @@ export default function EnglishPracticeApp() {
   };
 
   const handleDropOnSlot = (slotIndex) => {
-    if (draggedWord !== null) {
+    if (draggedWord !== null && !selectedWords[slotIndex]) {  // 빈 슬롯만
       const updatedSelected = [...selectedWords];
       updatedSelected[slotIndex] = { word: draggedWord, idx: draggedFromIndex };
       setSelectedWords(updatedSelected);
