@@ -478,14 +478,29 @@ export default function EnglishPracticeApp() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {folders.map(folder => (
-              <button
+              <div
                 key={folder.id}
-                onClick={() => selectFolder(folder)}
-                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:scale-105 text-left"
+                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition"
               >
-                <Folder size={48} className="text-yellow-500 mb-4" />
-                <h3 className="text-xl font-bold text-gray-800">{folder.name}</h3>
-              </button>
+                <div className="flex justify-between items-start mb-4">
+                  <button
+                    onClick={() => selectFolder(folder)}
+                    className="flex-1 text-left hover:opacity-80 transition"
+                  >
+                    <Folder size={48} className="text-yellow-500 mb-2" />
+                    <h3 className="text-xl font-bold text-gray-800">{folder.name}</h3>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteFolder(folder.id);
+                    }}
+                    className="p-2 hover:bg-red-100 rounded-lg transition text-red-600 flex-shrink-0"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
 
