@@ -1,7 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, RotateCcw, Edit2, BookOpen, LogOut, Home, FolderPlus, Folder } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 export default function EnglishPracticeApp() {
+  const [user, setUser] = useState(null);
   const [folders, setFolders] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [sentences, setSentences] = useState([]);
@@ -14,7 +33,6 @@ export default function EnglishPracticeApp() {
   const [editingKorean, setEditingKorean] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
-
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [randomizedSentences, setRandomizedSentences] = useState([]);
   const [selectedWords, setSelectedWords] = useState([]);
@@ -25,63 +43,106 @@ export default function EnglishPracticeApp() {
   const [practiceMode, setPracticeMode] = useState(null);
   const [draggedWord, setDraggedWord] = useState(null);
   const [draggedFromIndex, setDraggedFromIndex] = useState(null);
+  const [wordOpacity, setWordOpacity] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedFolders = JSON.parse(localStorage.getItem('folders') || '[]');
-    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-    if (storedFolders.length > 0 && storedUser) {
-      setFolders(storedFolders);
-      setMode('folderSelect');
-    }
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setMode('folderSelect');
+        await loadFolders(currentUser.uid);
+      } else {
+        setUser(null);
+        setMode('login');
+      }
+    });
+    return unsubscribe;
   }, []);
 
-  const handleGoogleLogin = () => {
-    const userName = prompt('사용자 이름을 입력하세요:');
-    if (userName) {
-      localStorage.setItem('user', JSON.stringify({ name: userName }));
-      setMode('folderSelect');
+  const loadFolders = async (userId) => {
+    try {
+      const q = query(collection(db, 'folders'), where('userId', '==', userId));
+      const querySnapshot = await getDocs(q);
+      const foldersList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setFolders(foldersList);
+    } catch (error) {
+      console.error('폴더 로드 실패:', error);
     }
   };
 
-  const handleLogout = () => {
-    setSelectedFolder(null);
-    setSentences([]);
-    setMode('login');
-    localStorage.removeItem('user');
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error('Google 로그인 실패:', error);
+      setFeedback('로그인에 실패했습니다.');
+      setTimeout(() => setFeedback(''), 2000);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const createFolder = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setSelectedFolder(null);
+      setSentences([]);
+      setFolders([]);
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
+  };
+
+  const createFolder = async () => {
     if (!newFolderName.trim()) {
       setFeedback('폴더 이름을 입력하세요.');
       setTimeout(() => setFeedback(''), 2000);
       return;
     }
-    const newFolder = {
-      id: Date.now(),
-      name: newFolderName,
-      sentences: []
-    };
-    const updatedFolders = [...folders, newFolder];
-    setFolders(updatedFolders);
-    localStorage.setItem('folders', JSON.stringify(updatedFolders));
-    setNewFolderName('');
-    setShowNewFolderInput(false);
-    setFeedback('폴더가 생성되었습니다!');
-    setTimeout(() => setFeedback(''), 2000);
+    try {
+      const docRef = await addDoc(collection(db, 'folders'), {
+        userId: user.uid,
+        name: newFolderName,
+        createdAt: new Date()
+      });
+      const newFolder = {
+        id: docRef.id,
+        userId: user.uid,
+        name: newFolderName,
+        sentences: []
+      };
+      setFolders([...folders, newFolder]);
+      setNewFolderName('');
+      setShowNewFolderInput(false);
+      setFeedback('폴더가 생성되었습니다!');
+      setTimeout(() => setFeedback(''), 2000);
+    } catch (error) {
+      console.error('폴더 생성 실패:', error);
+      setFeedback('폴더 생성에 실패했습니다.');
+      setTimeout(() => setFeedback(''), 2000);
+    }
   };
 
-  const selectFolder = (folder) => {
+  const selectFolder = async (folder) => {
     setSelectedFolder(folder);
-    setSentences(folder.sentences);
+    try {
+      const q = query(collection(db, 'sentences'), where('folderId', '==', folder.id));
+      const querySnapshot = await getDocs(q);
+      const sentencesList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSentences(sentencesList);
+    } catch (error) {
+      console.error('문장 로드 실패:', error);
+      setSentences([]);
+    }
     setMode(null);
-  };
-
-  const saveSentencesToFolder = () => {
-    const updatedFolders = folders.map(f =>
-      f.id === selectedFolder.id ? { ...f, sentences } : f
-    );
-    setFolders(updatedFolders);
-    localStorage.setItem('folders', JSON.stringify(updatedFolders));
   };
 
   const addSentence = async () => {
@@ -95,22 +156,32 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
       return;
     }
-    const newSentenceObj = {
-      id: Date.now(),
-      english: newSentence.trim(),
-      korean: koreanTranslation.trim(),
-    };
-    const newSentences = [...sentences, newSentenceObj];
-    setSentences(newSentences);
-    setSelectedFolder({ ...selectedFolder, sentences: newSentences });
-    saveSentencesToFolder();
-    setNewSentence('');
-    setKoreanTranslation('');
-    setFeedback('문장이 추가되었습니다!');
-    setTimeout(() => setFeedback(''), 2000);
+    try {
+      const docRef = await addDoc(collection(db, 'sentences'), {
+        folderId: selectedFolder.id,
+        english: newSentence.trim(),
+        korean: koreanTranslation.trim(),
+        createdAt: new Date()
+      });
+      const newSentenceObj = {
+        id: docRef.id,
+        folderId: selectedFolder.id,
+        english: newSentence.trim(),
+        korean: koreanTranslation.trim()
+      };
+      setSentences([...sentences, newSentenceObj]);
+      setNewSentence('');
+      setKoreanTranslation('');
+      setFeedback('문장이 추가되었습니다!');
+      setTimeout(() => setFeedback(''), 2000);
+    } catch (error) {
+      console.error('문장 추가 실패:', error);
+      setFeedback('문장 추가에 실패했습니다.');
+      setTimeout(() => setFeedback(''), 2000);
+    }
   };
 
-  const updateSentence = () => {
+  const updateSentence = async () => {
     if (!editingSentence.trim()) {
       setFeedback('영어 문장을 입력하세요.');
       return;
@@ -119,28 +190,42 @@ export default function EnglishPracticeApp() {
       setFeedback('한글 번역을 입력하세요.');
       return;
     }
-    const newSentences = sentences.map(s =>
-      s.id === editingId
-        ? { ...s, english: editingSentence.trim(), korean: editingKorean.trim() }
-        : s
-    );
-    setSentences(newSentences);
-    setSelectedFolder({ ...selectedFolder, sentences: newSentences });
-    saveSentencesToFolder();
-    setEditingId(null);
-    setEditingSentence('');
-    setEditingKorean('');
-    setFeedback('문장이 수정되었습니다!');
-    setTimeout(() => setFeedback(''), 2000);
+    try {
+      const sentenceRef = doc(db, 'sentences', editingId);
+      await updateDoc(sentenceRef, {
+        english: editingSentence.trim(),
+        korean: editingKorean.trim()
+      });
+      const newSentences = sentences.map(s =>
+        s.id === editingId
+          ? { ...s, english: editingSentence.trim(), korean: editingKorean.trim() }
+          : s
+      );
+      setSentences(newSentences);
+      setEditingId(null);
+      setEditingSentence('');
+      setEditingKorean('');
+      setFeedback('문장이 수정되었습니다!');
+      setTimeout(() => setFeedback(''), 2000);
+    } catch (error) {
+      console.error('문장 수정 실패:', error);
+      setFeedback('문장 수정에 실패했습니다.');
+      setTimeout(() => setFeedback(''), 2000);
+    }
   };
 
-  const deleteSentence = (id) => {
-    const newSentences = sentences.filter(s => s.id !== id);
-    setSentences(newSentences);
-    setSelectedFolder({ ...selectedFolder, sentences: newSentences });
-    saveSentencesToFolder();
-    setFeedback('문장이 삭제되었습니다!');
-    setTimeout(() => setFeedback(''), 2000);
+  const deleteSentence = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'sentences', id));
+      const newSentences = sentences.filter(s => s.id !== id);
+      setSentences(newSentences);
+      setFeedback('문장이 삭제되었습니다!');
+      setTimeout(() => setFeedback(''), 2000);
+    } catch (error) {
+      console.error('문장 삭제 실패:', error);
+      setFeedback('문장 삭제에 실패했습니다.');
+      setTimeout(() => setFeedback(''), 2000);
+    }
   };
 
   const autoTranslate = async (text) => {
@@ -207,6 +292,7 @@ export default function EnglishPracticeApp() {
     setCurrentQuizIndex(0);
     setSelectedWords([]);
     setUserInput('');
+    setWordOpacity({});
     initializeQuiz(randomized[0], type);
     setMode('practice');
   };
@@ -219,6 +305,12 @@ export default function EnglishPracticeApp() {
       setSelectedWords([]);
     } else {
       setUserInput('');
+      const words = sentence.english.split(/\s+/);
+      const newOpacity = {};
+      words.forEach((_, idx) => {
+        newOpacity[idx] = 1;
+      });
+      setWordOpacity(newOpacity);
     }
     setQuizFeedback('');
   };
@@ -230,6 +322,13 @@ export default function EnglishPracticeApp() {
     } else {
       setSelectedWords([...selectedWords, { word, idx }]);
     }
+  };
+
+  const toggleWordOpacity = (idx) => {
+    setWordOpacity({
+      ...wordOpacity,
+      [idx]: wordOpacity[idx] === 1 ? 0.3 : 1
+    });
   };
 
   const handleDragStart = (word, idx) => {
@@ -319,7 +418,8 @@ export default function EnglishPracticeApp() {
           <p className="text-gray-600 text-center mb-8">문장을 등록하고 단어를 배열해서 영어를 연습하세요</p>
           <button
             onClick={handleGoogleLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -327,7 +427,7 @@ export default function EnglishPracticeApp() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            시작하기
+            Google로 로그인
           </button>
         </div>
       </div>
@@ -339,7 +439,10 @@ export default function EnglishPracticeApp() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">폴더 선택</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">폴더 선택</h1>
+              <p className="text-gray-600">{user?.displayName}님</p>
+            </div>
             <button
               onClick={handleLogout}
               className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
@@ -357,7 +460,6 @@ export default function EnglishPracticeApp() {
               >
                 <Folder size={48} className="text-yellow-500 mb-4" />
                 <h3 className="text-xl font-bold text-gray-800">{folder.name}</h3>
-                <p className="text-gray-600 mt-2">{folder.sentences.length}개 문장</p>
               </button>
             ))}
           </div>
@@ -658,7 +760,7 @@ export default function EnglishPracticeApp() {
               </div>
 
               <div className="flex gap-3 mb-6">
-                <button onClick={checkAnswerArrange} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition">다음 문제</button>
+                <button onClick={checkAnswerArrange} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition">확인</button>
                 <button onClick={() => { setSelectedWords([]); setQuizFeedback(''); }} className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
                   <RotateCcw size={20} /> 초기화
                 </button>
@@ -709,6 +811,22 @@ export default function EnglishPracticeApp() {
               </div>
 
               <div className="mb-6">
+                <p className="text-sm font-semibold text-gray-700 mb-3">단어 카드 (클릭하여 보기/숨기기):</p>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  {currentSentence.english.split(/\s+/).map((word, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => toggleWordOpacity(idx)}
+                      className="px-6 py-3 rounded-lg font-semibold transition bg-purple-500 text-white hover:bg-purple-600"
+                      style={{ opacity: wordOpacity[idx] || 1 }}
+                    >
+                      {word}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-3">영어 문장을 입력하세요:</p>
                 <input
                   type="text"
@@ -722,7 +840,7 @@ export default function EnglishPracticeApp() {
               </div>
 
               <div className="flex gap-3 mb-6">
-                <button onClick={checkAnswerTyping} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition">다음 문제</button>
+                <button onClick={checkAnswerTyping} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition">확인</button>
                 <button onClick={() => { setUserInput(''); setQuizFeedback(''); }} className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
                   <RotateCcw size={20} /> 초기화
                 </button>
