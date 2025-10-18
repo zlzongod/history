@@ -215,6 +215,9 @@ export default function EnglishPracticeApp() {
   };
 
   const deleteSentence = async (id) => {
+    if (!window.confirm('이 문장을 삭제하시겠습니까?')) {
+      return;
+    }
     try {
       await deleteDoc(doc(db, 'sentences', id));
       const newSentences = sentences.filter(s => s.id !== id);
@@ -224,6 +227,28 @@ export default function EnglishPracticeApp() {
     } catch (error) {
       console.error('문장 삭제 실패:', error);
       setFeedback('문장 삭제에 실패했습니다.');
+      setTimeout(() => setFeedback(''), 2000);
+    }
+  };
+
+  const deleteFolder = async (folderId) => {
+    if (!window.confirm('이 폴더를 삭제하시겠습니까? 폴더 내의 모든 문장도 함께 삭제됩니다.')) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'folders', folderId));
+      const q = query(collection(db, 'sentences'), where('folderId', '==', folderId));
+      const querySnapshot = await getDocs(q);
+      for (const sentenceDoc of querySnapshot.docs) {
+        await deleteDoc(sentenceDoc.ref);
+      }
+      const newFolders = folders.filter(f => f.id !== folderId);
+      setFolders(newFolders);
+      setFeedback('폴더가 삭제되었습니다!');
+      setTimeout(() => setFeedback(''), 2000);
+    } catch (error) {
+      console.error('폴더 삭제 실패:', error);
+      setFeedback('폴더 삭제에 실패했습니다.');
       setTimeout(() => setFeedback(''), 2000);
     }
   };
