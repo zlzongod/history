@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, RotateCcw, Edit2, BookOpen, LogOut, Home, FolderPlus, Folder } from 'lucide-react';
 
 export default function EnglishPracticeApp() {
-  const [user, setUser] = useState(null);
   const [folders, setFolders] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [sentences, setSentences] = useState([]);
