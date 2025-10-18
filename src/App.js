@@ -31,7 +31,6 @@ export default function EnglishPracticeApp() {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     if (storedFolders.length > 0 && storedUser) {
       setFolders(storedFolders);
-      setUser(storedUser);
       setMode('folderSelect');
     }
   }, []);
@@ -39,14 +38,12 @@ export default function EnglishPracticeApp() {
   const handleGoogleLogin = () => {
     const userName = prompt('사용자 이름을 입력하세요:');
     if (userName) {
-      setUser({ name: userName });
       localStorage.setItem('user', JSON.stringify({ name: userName }));
       setMode('folderSelect');
     }
   };
 
   const handleLogout = () => {
-    setUser(null);
     setSelectedFolder(null);
     setSentences([]);
     setMode('login');
