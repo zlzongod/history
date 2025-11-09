@@ -131,12 +131,24 @@ export default function EnglishPracticeApp() {
   const selectFolder = async (folder) => {
     setSelectedFolder(folder);
     try {
-      const q = query(collection(db, 'sentences'), where('folderId', '==', folder.id));
-      const querySnapshot = await getDocs(q);
-      const sentencesList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      let sentencesList;
+      if (folder.id === 'all') {
+        // 전체 폴더: 모든 문장 가져오기
+        const q = query(collection(db, 'sentences'), where('userId', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+        sentencesList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } else {
+        // 특정 폴더의 문장만 가져오기
+        const q = query(collection(db, 'sentences'), where('folderId', '==', folder.id));
+        const querySnapshot = await getDocs(q);
+        sentencesList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
       setSentences(sentencesList);
     } catch (error) {
       console.error('문장 로드 실패:', error);
@@ -159,6 +171,7 @@ export default function EnglishPracticeApp() {
     try {
       const docRef = await addDoc(collection(db, 'sentences'), {
         folderId: selectedFolder.id,
+        userId: user.uid,
         english: newSentence.trim(),
         korean: koreanTranslation.trim(),
         createdAt: new Date()
@@ -166,6 +179,7 @@ export default function EnglishPracticeApp() {
       const newSentenceObj = {
         id: docRef.id,
         folderId: selectedFolder.id,
+        userId: user.uid,
         english: newSentence.trim(),
         korean: koreanTranslation.trim()
       };
@@ -331,8 +345,11 @@ export default function EnglishPracticeApp() {
     } else {
       setUserInput('');
       const words = sentence.english.split(/\s+/);
+      // 단어를 랜덤 순서로 섞기
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      setShuffledWords(shuffled);
       const newOpacity = {};
-      words.forEach((_, idx) => {
+      shuffled.forEach((_, idx) => {
         newOpacity[idx] = 1;
       });
       setWordOpacity(newOpacity);
@@ -477,6 +494,20 @@ export default function EnglishPracticeApp() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* 전체 폴더 */}
+            <div
+              className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg shadow-lg p-6 hover:shadow-xl transition border-2 border-purple-300"
+            >
+              <button
+                onClick={() => selectFolder({ id: 'all', name: '전체', userId: user.uid })}
+                className="w-full text-left hover:opacity-80 transition"
+              >
+                <BookOpen size={48} className="text-purple-600 mb-2" />
+                <h3 className="text-xl font-bold text-gray-800">전체</h3>
+                <p className="text-sm text-gray-600 mt-1">모든 폴더의 문장</p>
+              </button>
+            </div>
+            
             {folders.map(folder => (
               <div
                 key={folder.id}
@@ -570,11 +601,13 @@ export default function EnglishPracticeApp() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <button onClick={() => setMode('register')} className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition transform hover:scale-105">
-              <Plus size={48} className="text-blue-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">문장 등록</h2>
-              <p className="text-gray-600">새로운 문장을 추가하고 관리하세요</p>
-            </button>
+            {selectedFolder?.id !== 'all' && (
+              <button onClick={() => setMode('register')} className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition transform hover:scale-105">
+                <Plus size={48} className="text-blue-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">문장 등록</h2>
+                <p className="text-gray-600">새로운 문장을 추가하고 관리하세요</p>
+              </button>
+            )}
 
             <button
               onClick={() => startPracticeMode('arrange')}
@@ -602,6 +635,28 @@ export default function EnglishPracticeApp() {
   }
 
   if (mode === 'register') {
+    // 전체 폴더에서는 문장 등록 불가
+    if (selectedFolder?.id === 'all') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-4 mb-8">
+              <button onClick={() => setMode(null)} className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
+                <Home size={20} /> 메인
+              </button>
+              <button onClick={() => setMode('folderSelect')} className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
+                <Folder size={20} /> 폴더 선택
+              </button>
+            </div>
+            <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-8 text-center">
+              <p className="text-xl text-gray-800 font-semibold">전체 폴더에서는 문장을 등록할 수 없습니다.</p>
+              <p className="text-gray-600 mt-2">특정 폴더를 선택해주세요.</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
         <div className="max-w-4xl mx-auto">
@@ -853,7 +908,7 @@ export default function EnglishPracticeApp() {
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-3">단어 카드 (클릭하여 보기/숨기기):</p>
                 <div className="flex flex-wrap gap-3 mb-6">
-                  {currentSentence.english.split(/\s+/).map((word, idx) => (
+                  {shuffledWords.map((word, idx) => (
                     <button
                       key={idx}
                       onClick={() => toggleWordOpacity(idx)}
