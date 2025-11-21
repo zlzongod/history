@@ -3,7 +3,6 @@ import { Trash2, Plus, RotateCcw, Edit2, BookOpen, LogOut, Home, FolderPlus, Fol
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
-
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -13,12 +12,10 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
-
 export default function EnglishPracticeApp() {
   const [user, setUser] = useState(null);
   const [folders, setFolders] = useState([]);
@@ -45,7 +42,6 @@ export default function EnglishPracticeApp() {
   const [draggedFromIndex, setDraggedFromIndex] = useState(null);
   const [wordOpacity, setWordOpacity] = useState({});
   const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       if (currentUser) {
@@ -59,7 +55,6 @@ export default function EnglishPracticeApp() {
     });
     return unsubscribe;
   }, []);
-
   const loadFolders = async (userId) => {
     try {
       const q = query(collection(db, 'folders'), where('userId', '==', userId));
@@ -73,7 +68,6 @@ export default function EnglishPracticeApp() {
       console.error('폴더 로드 실패:', error);
     }
   };
-
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
@@ -86,7 +80,6 @@ export default function EnglishPracticeApp() {
       setLoading(false);
     }
   };
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -97,7 +90,6 @@ export default function EnglishPracticeApp() {
       console.error('로그아웃 실패:', error);
     }
   };
-
   const createFolder = async () => {
     if (!newFolderName.trim()) {
       setFeedback('폴더 이름을 입력하세요.');
@@ -127,7 +119,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const selectFolder = async (folder) => {
     setSelectedFolder(folder);
     try {
@@ -156,7 +147,6 @@ export default function EnglishPracticeApp() {
     }
     setMode(null);
   };
-
   const addSentence = async () => {
     if (!newSentence.trim()) {
       setFeedback('영어 문장을 입력하세요.');
@@ -194,7 +184,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const updateSentence = async () => {
     if (!editingSentence.trim()) {
       setFeedback('영어 문장을 입력하세요.');
@@ -227,7 +216,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const deleteSentence = async (id) => {
     if (!window.confirm('이 문장을 삭제하시겠습니까?')) {
       return;
@@ -244,7 +232,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const deleteFolder = async (folderId) => {
     if (!window.confirm('이 폴더를 삭제하시겠습니까? 폴더 내의 모든 문장도 함께 삭제됩니다.')) {
       return;
@@ -266,7 +253,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const autoTranslate = async (text) => {
     try {
       const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ko`;
@@ -281,7 +267,6 @@ export default function EnglishPracticeApp() {
       return '';
     }
   };
-
   const handleAutoTranslate = async () => {
     if (!newSentence.trim()) {
       setFeedback('영어 문장을 입력하세요.');
@@ -299,7 +284,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const handleEditAutoTranslate = async () => {
     if (!editingSentence.trim()) {
       setFeedback('영어 문장을 입력하세요.');
@@ -317,7 +301,6 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   const startPracticeMode = (type) => {
     if (sentences.length === 0) {
       setFeedback('등록된 문장이 없습니다.');
@@ -335,7 +318,6 @@ export default function EnglishPracticeApp() {
     initializeQuiz(randomized[0], type);
     setMode('practice');
   };
-
   const initializeQuiz = (sentence, type) => {
     if (type === 'arrange') {
       const words = sentence.english.split(/\s+/);
@@ -356,7 +338,6 @@ export default function EnglishPracticeApp() {
     }
     setQuizFeedback('');
   };
-
   const toggleWord = (word, idx) => {
     const isSelected = selectedWords.some(w => w.idx === idx);
     if (isSelected) {
@@ -365,23 +346,19 @@ export default function EnglishPracticeApp() {
       setSelectedWords([...selectedWords, { word, idx }]);
     }
   };
-
   const toggleWordOpacity = (idx) => {
     setWordOpacity({
       ...wordOpacity,
       [idx]: wordOpacity[idx] === 1 ? 0.3 : 1
     });
   };
-
   const handleDragStart = (word, idx) => {
     setDraggedWord(word);
     setDraggedFromIndex(idx);
   };
-
   const handleDragOver = (e) => {
     e.preventDefault();
   };
-
   const handleDropOnSlot = (slotIndex) => {
     if (draggedWord !== null) {
       const newSelected = [...selectedWords];
@@ -391,11 +368,9 @@ export default function EnglishPracticeApp() {
       setDraggedFromIndex(null);
     }
   };
-
   const checkAnswerArrange = () => {
     const userAnswer = selectedWords.map(w => w.word).join(' ');
     const correctAnswer = randomizedSentences[currentQuizIndex].english;
-
     if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
       setQuizFeedback('✓ 정답입니다!');
     } else {
@@ -406,10 +381,8 @@ export default function EnglishPracticeApp() {
       }
     }
   };
-
   const checkAnswerTyping = () => {
     const correctAnswer = randomizedSentences[currentQuizIndex].english;
-
     if (userInput.trim().toLowerCase() === correctAnswer.toLowerCase()) {
       setQuizFeedback('✓ 정답입니다!');
     } else {
@@ -420,7 +393,6 @@ export default function EnglishPracticeApp() {
       }
     }
   };
-
   const nextQuiz = () => {
     if (currentQuizIndex < randomizedSentences.length - 1) {
       const nextIndex = currentQuizIndex + 1;
@@ -450,18 +422,17 @@ export default function EnglishPracticeApp() {
       setTimeout(() => setFeedback(''), 2000);
     }
   };
-
   if (mode === 'login') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6">
         <div className="bg-white rounded-lg shadow-2xl p-12 max-w-md w-full">
-          <BookOpen size={64} className="text-blue-600 mx-auto mb-6" />
+          <BookOpen size={64} className="text-gray-600 mx-auto mb-6" />
           <h1 className="text-4xl font-bold text-gray-800 mb-2 text-center">영어 배열 연습</h1>
           <p className="text-gray-600 text-center mb-8">문장을 등록하고 단어를 배열해서 영어를 연습하세요</p>
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50"
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -475,10 +446,9 @@ export default function EnglishPracticeApp() {
       </div>
     );
   }
-
   if (mode === 'folderSelect') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -487,27 +457,26 @@ export default function EnglishPracticeApp() {
             </div>
             <button
               onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
             >
               <LogOut size={20} /> 로그아웃
             </button>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* 전체 폴더 */}
             <div
-              className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg shadow-lg p-6 hover:shadow-xl transition border-2 border-purple-300"
+              className="bg-gradient-to-br from-gray-100 to-gray-100 rounded-lg shadow-lg p-6 hover:shadow-xl transition border-2 border-gray-300"
             >
               <button
                 onClick={() => selectFolder({ id: 'all', name: '전체', userId: user.uid })}
                 className="w-full text-left hover:opacity-80 transition"
               >
-                <BookOpen size={48} className="text-purple-600 mb-2" />
+                <BookOpen size={48} className="text-gray-600 mb-2" />
                 <h3 className="text-xl font-bold text-gray-800">전체</h3>
                 <p className="text-sm text-gray-600 mt-1">모든 폴더의 문장</p>
               </button>
             </div>
-            
+           
             {folders.map(folder => (
               <div
                 key={folder.id}
@@ -518,7 +487,7 @@ export default function EnglishPracticeApp() {
                     onClick={() => selectFolder(folder)}
                     className="flex-1 text-left hover:opacity-80 transition"
                   >
-                    <Folder size={48} className="text-yellow-500 mb-2" />
+                    <Folder size={48} className="text-gray-500 mb-2" />
                     <h3 className="text-xl font-bold text-gray-800">{folder.name}</h3>
                   </button>
                   <button
@@ -526,7 +495,7 @@ export default function EnglishPracticeApp() {
                       e.stopPropagation();
                       deleteFolder(folder.id);
                     }}
-                    className="p-2 hover:bg-red-100 rounded-lg transition text-red-600 flex-shrink-0"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-600 flex-shrink-0"
                   >
                     <Trash2 size={20} />
                   </button>
@@ -534,11 +503,10 @@ export default function EnglishPracticeApp() {
               </div>
             ))}
           </div>
-
           {!showNewFolderInput ? (
             <button
               onClick={() => setShowNewFolderInput(true)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition"
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition"
             >
               <FolderPlus size={20} /> 새 폴더 생성
             </button>
@@ -551,12 +519,12 @@ export default function EnglishPracticeApp() {
                   onChange={(e) => setNewFolderName(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && createFolder()}
                   placeholder="폴더 이름을 입력하세요..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
                   autoFocus
                 />
                 <button
                   onClick={createFolder}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition"
                 >
                   생성
                 </button>
@@ -567,17 +535,16 @@ export default function EnglishPracticeApp() {
                   취소
                 </button>
               </div>
-              {feedback && <p className="mt-3 text-sm font-medium px-3 py-2 rounded-lg bg-green-100 text-green-700">{feedback}</p>}
+              {feedback && <p className="mt-3 text-sm font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">{feedback}</p>}
             </div>
           )}
         </div>
       </div>
     );
   }
-
   if (!mode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -593,38 +560,35 @@ export default function EnglishPracticeApp() {
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
               >
                 <LogOut size={20} /> 로그아웃
               </button>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {selectedFolder?.id !== 'all' && (
               <button onClick={() => setMode('register')} className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition transform hover:scale-105">
-                <Plus size={48} className="text-blue-600 mx-auto mb-4" />
+                <Plus size={48} className="text-gray-600 mx-auto mb-4" />
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">문장 등록</h2>
                 <p className="text-gray-600">새로운 문장을 추가하고 관리하세요</p>
               </button>
             )}
-
             <button
               onClick={() => startPracticeMode('arrange')}
               disabled={sentences.length === 0}
               className={`rounded-lg shadow-lg p-8 transition transform ${sentences.length === 0 ? 'bg-gray-200 cursor-not-allowed' : 'bg-white hover:shadow-xl hover:scale-105'}`}
             >
-              <BookOpen size={48} className={`mx-auto mb-4 ${sentences.length === 0 ? 'text-gray-400' : 'text-green-600'}`} />
+              <BookOpen size={48} className={`mx-auto mb-4 ${sentences.length === 0 ? 'text-gray-400' : 'text-gray-600'}`} />
               <h2 className={`text-2xl font-bold mb-2 ${sentences.length === 0 ? 'text-gray-400' : 'text-gray-800'}`}>단어 배열</h2>
               <p className={sentences.length === 0 ? 'text-gray-400' : 'text-gray-600'}>{sentences.length === 0 ? '먼저 문장을 등록하세요' : '단어를 배열해 문장 완성'}</p>
             </button>
-
             <button
               onClick={() => startPracticeMode('typing')}
               disabled={sentences.length === 0}
               className={`rounded-lg shadow-lg p-8 transition transform ${sentences.length === 0 ? 'bg-gray-200 cursor-not-allowed' : 'bg-white hover:shadow-xl hover:scale-105'}`}
             >
-              <Edit2 size={48} className={`mx-auto mb-4 ${sentences.length === 0 ? 'text-gray-400' : 'text-purple-600'}`} />
+              <Edit2 size={48} className={`mx-auto mb-4 ${sentences.length === 0 ? 'text-gray-400' : 'text-gray-600'}`} />
               <h2 className={`text-2xl font-bold mb-2 ${sentences.length === 0 ? 'text-gray-400' : 'text-gray-800'}`}>단어 입력</h2>
               <p className={sentences.length === 0 ? 'text-gray-400' : 'text-gray-600'}>{sentences.length === 0 ? '먼저 문장을 등록하세요' : '직접 입력해 문장 완성'}</p>
             </button>
@@ -633,12 +597,11 @@ export default function EnglishPracticeApp() {
       </div>
     );
   }
-
   if (mode === 'register') {
     // 전체 폴더에서는 문장 등록 불가
     if (selectedFolder?.id === 'all') {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-4 mb-8">
               <button onClick={() => setMode(null)} className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
@@ -648,7 +611,7 @@ export default function EnglishPracticeApp() {
                 <Folder size={20} /> 폴더 선택
               </button>
             </div>
-            <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-8 text-center">
+            <div className="bg-gray-100 border-2 border-gray-400 rounded-lg p-8 text-center">
               <p className="text-xl text-gray-800 font-semibold">전체 폴더에서는 문장을 등록할 수 없습니다.</p>
               <p className="text-gray-600 mt-2">특정 폴더를 선택해주세요.</p>
             </div>
@@ -656,9 +619,9 @@ export default function EnglishPracticeApp() {
         </div>
       );
     }
-    
+   
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-4 mb-8">
             <button onClick={() => setMode(null)} className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
@@ -668,10 +631,8 @@ export default function EnglishPracticeApp() {
               <Folder size={20} /> 폴더 선택
             </button>
           </div>
-
           <h1 className="text-4xl font-bold text-gray-800 mb-2">문장 관리</h1>
           <p className="text-gray-600 mb-8">문장을 등록, 수정, 삭제하세요</p>
-
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">새 문장 등록</h2>
             <div className="space-y-3 mb-4">
@@ -681,7 +642,7 @@ export default function EnglishPracticeApp() {
                 onChange={(e) => setNewSentence(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && addSentence()}
                 placeholder="영어 문장을 입력하세요..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               />
               <input
                 type="text"
@@ -689,20 +650,19 @@ export default function EnglishPracticeApp() {
                 onChange={(e) => setKoreanTranslation(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && addSentence()}
                 placeholder="한글 번역을 입력하세요"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               />
             </div>
             <div className="flex gap-3 mb-4">
-              <button onClick={handleAutoTranslate} className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold transition">자동 번역</button>
-              <button onClick={addSentence} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition">
+              <button onClick={handleAutoTranslate} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition">자동 번역</button>
+              <button onClick={addSentence} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition">
                 <Plus size={20} /> 추가
               </button>
             </div>
-            {feedback && <p className="mt-3 text-sm font-medium px-3 py-2 rounded-lg bg-green-100 text-green-700">{feedback}</p>}
+            {feedback && <p className="mt-3 text-sm font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">{feedback}</p>}
           </div>
-
           {editingId && (
-            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-lg p-6 mb-8">
+            <div className="bg-gray-50 border-2 border-gray-300 rounded-lg shadow-lg p-6 mb-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">문장 수정</h2>
               <div className="space-y-3 mb-4">
                 <input
@@ -710,24 +670,23 @@ export default function EnglishPracticeApp() {
                   value={editingSentence}
                   onChange={(e) => setEditingSentence(e.target.value)}
                   placeholder="영어 문장을 입력하세요..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
                 />
                 <input
                   type="text"
                   value={editingKorean}
                   onChange={(e) => setEditingKorean(e.target.value)}
                   placeholder="한글 번역"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
                 />
               </div>
               <div className="flex gap-3 mb-4">
-                <button onClick={handleEditAutoTranslate} className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold transition">자동 번역</button>
-                <button onClick={updateSentence} className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg font-semibold transition">저장</button>
+                <button onClick={handleEditAutoTranslate} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition">자동 번역</button>
+                <button onClick={updateSentence} className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition">저장</button>
                 <button onClick={() => { setEditingId(null); setEditingSentence(''); setEditingKorean(''); }} className="flex-1 bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold transition">취소</button>
               </div>
             </div>
           )}
-
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">등록된 문장 ({sentences.length})</h2>
             <div className="space-y-3">
@@ -744,11 +703,11 @@ export default function EnglishPracticeApp() {
                       <div className="flex gap-2 flex-shrink-0">
                         <button
                           onClick={() => { setEditingId(sentence.id); setEditingSentence(sentence.english); setEditingKorean(sentence.korean); }}
-                          className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-600"
                         >
                           <Edit2 size={18} />
                         </button>
-                        <button onClick={() => deleteSentence(sentence.id)} className="p-2 hover:bg-red-100 rounded-lg transition text-red-600">
+                        <button onClick={() => deleteSentence(sentence.id)} className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-600">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -762,16 +721,13 @@ export default function EnglishPracticeApp() {
       </div>
     );
   }
-
   if (mode === 'practice') {
     const currentSentence = randomizedSentences[currentQuizIndex];
     const progress = currentQuizIndex + 1;
-
     if (practiceMode === 'arrange') {
       const emptySlots = Math.max(0, currentSentence.english.split(/\s+/).length - selectedWords.length);
-
       return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-4 mb-8">
               <button onClick={() => setMode(null)} className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
@@ -781,7 +737,6 @@ export default function EnglishPracticeApp() {
                 <Folder size={20} /> 폴더 선택
               </button>
             </div>
-
             <div className="mb-6">
               <h1 className="text-4xl font-bold text-gray-800 mb-2">단어 배열 연습</h1>
               <div className="flex justify-between items-center">
@@ -789,19 +744,16 @@ export default function EnglishPracticeApp() {
                 <p className="text-lg font-semibold text-gray-700">{progress} / {randomizedSentences.length}</p>
               </div>
             </div>
-
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-                <div className="bg-green-500 h-2 rounded-full transition-all duration-300" style={{ width: `${(progress / randomizedSentences.length) * 100}%` }}></div>
+                <div className="bg-gray-500 h-2 rounded-full transition-all duration-300" style={{ width: `${(progress / randomizedSentences.length) * 100}%` }}></div>
               </div>
-
-              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-8">
+              <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-6 mb-8">
                 <p className="text-gray-700 font-medium text-lg">{currentSentence.korean}</p>
               </div>
-
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-3">단어 선택 (클릭 또는 드래그):</p>
-                <div className="bg-blue-50 rounded-lg p-4 min-h-20 flex flex-wrap gap-2 items-start content-start border border-blue-200">
+                <div className="bg-gray-50 rounded-lg p-4 min-h-20 flex flex-wrap gap-2 items-start content-start border border-gray-200">
                   {selectedWords.length === 0 && emptySlots === currentSentence.english.split(/\s+/).length ? (
                     <p className="text-gray-500 text-sm">아래에서 단어를 선택하거나 드래그하세요</p>
                   ) : (
@@ -810,7 +762,7 @@ export default function EnglishPracticeApp() {
                         <button
                           key={idx}
                           onClick={() => { const newSelected = selectedWords.filter((_, i) => i !== idx); setSelectedWords(newSelected); }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition cursor-pointer"
+                          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-full text-sm font-medium transition cursor-pointer"
                         >
                           {w.word}
                         </button>
@@ -820,7 +772,7 @@ export default function EnglishPracticeApp() {
                           key={`empty-${idx}`}
                           onDragOver={handleDragOver}
                           onDrop={() => handleDropOnSlot(selectedWords.length + idx)}
-                          className="border-2 border-dashed border-blue-300 rounded-full px-4 py-2 min-w-20 text-center text-gray-400 text-sm hover:bg-blue-100 transition"
+                          className="border-2 border-dashed border-gray-300 rounded-full px-4 py-2 min-w-20 text-center text-gray-400 text-sm hover:bg-gray-100 transition"
                         >
                           _
                         </div>
@@ -829,7 +781,6 @@ export default function EnglishPracticeApp() {
                   )}
                 </div>
               </div>
-
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-3">사용 가능한 단어:</p>
                 <div className="flex flex-wrap gap-2">
@@ -844,7 +795,7 @@ export default function EnglishPracticeApp() {
                         className={`px-4 py-2 rounded-lg font-medium transition ${
                           isSelected
                             ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                            : 'bg-green-500 hover:bg-green-600 text-white cursor-grab active:cursor-grabbing'
+                            : 'bg-gray-500 hover:bg-gray-600 text-white cursor-grab active:cursor-grabbing'
                         }`}
                       >
                         {word}
@@ -853,21 +804,19 @@ export default function EnglishPracticeApp() {
                   })}
                 </div>
               </div>
-
               <div className="flex gap-3 mb-6">
-                <button onClick={checkAnswerArrange} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition">확인</button>
+                <button onClick={checkAnswerArrange} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition">확인</button>
                 <button onClick={() => { setSelectedWords([]); setQuizFeedback(''); }} className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
                   <RotateCcw size={20} /> 초기화
                 </button>
               </div>
-
               {quizFeedback && (
-                <div className={`p-4 rounded-lg font-semibold text-center ${quizFeedback.startsWith('✓') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <div className={`p-4 rounded-lg font-semibold text-center ${quizFeedback.startsWith('✓') ? 'bg-gray-100 text-gray-700' : 'bg-gray-100 text-gray-700'}`}>
                   {quizFeedback}
                   {progress < randomizedSentences.length || failedSentences.length > 0 ? (
-                    <button onClick={nextQuiz} className="block w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">다음 문제</button>
+                    <button onClick={nextQuiz} className="block w-full mt-3 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition">다음 문제</button>
                   ) : (
-                    <button onClick={() => setMode(null)} className="block w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">메인으로 돌아가기</button>
+                    <button onClick={() => setMode(null)} className="block w-full mt-3 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition">메인으로 돌아가기</button>
                   )}
                 </div>
               )}
@@ -877,7 +826,7 @@ export default function EnglishPracticeApp() {
       );
     } else {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-4 mb-8">
               <button onClick={() => setMode(null)} className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
@@ -887,7 +836,6 @@ export default function EnglishPracticeApp() {
                 <Folder size={20} /> 폴더 선택
               </button>
             </div>
-
             <div className="mb-6">
               <h1 className="text-4xl font-bold text-gray-800 mb-2">단어 입력 연습</h1>
               <div className="flex justify-between items-center">
@@ -895,16 +843,13 @@ export default function EnglishPracticeApp() {
                 <p className="text-lg font-semibold text-gray-700">{progress} / {randomizedSentences.length}</p>
               </div>
             </div>
-
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-                <div className="bg-purple-500 h-2 rounded-full transition-all duration-300" style={{ width: `${(progress / randomizedSentences.length) * 100}%` }}></div>
+                <div className="bg-gray-500 h-2 rounded-full transition-all duration-300" style={{ width: `${(progress / randomizedSentences.length) * 100}%` }}></div>
               </div>
-
-              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-8">
+              <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-6 mb-8">
                 <p className="text-gray-700 font-medium text-lg">{currentSentence.korean}</p>
               </div>
-
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-3">단어 카드 (클릭하여 보기/숨기기):</p>
                 <div className="flex flex-wrap gap-3 mb-6">
@@ -912,7 +857,7 @@ export default function EnglishPracticeApp() {
                     <button
                       key={idx}
                       onClick={() => toggleWordOpacity(idx)}
-                      className="px-6 py-3 rounded-lg font-semibold transition bg-purple-500 text-white hover:bg-purple-600"
+                      className="px-6 py-3 rounded-lg font-semibold transition bg-gray-500 text-white hover:bg-gray-600"
                       style={{ opacity: wordOpacity[idx] || 1 }}
                     >
                       {word}
@@ -920,7 +865,6 @@ export default function EnglishPracticeApp() {
                   ))}
                 </div>
               </div>
-
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-3">영어 문장을 입력하세요:</p>
                 <input
@@ -929,25 +873,23 @@ export default function EnglishPracticeApp() {
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && checkAnswerTyping()}
                   placeholder="영어 문장을 입력하세요..."
-                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 text-lg"
                   autoFocus
                 />
               </div>
-
               <div className="flex gap-3 mb-6">
-                <button onClick={checkAnswerTyping} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition">확인</button>
+                <button onClick={checkAnswerTyping} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition">확인</button>
                 <button onClick={() => { setUserInput(''); setQuizFeedback(''); }} className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
                   <RotateCcw size={20} /> 초기화
                 </button>
               </div>
-
               {quizFeedback && (
-                <div className={`p-4 rounded-lg font-semibold text-center ${quizFeedback.startsWith('✓') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <div className={`p-4 rounded-lg font-semibold text-center ${quizFeedback.startsWith('✓') ? 'bg-gray-100 text-gray-700' : 'bg-gray-100 text-gray-700'}`}>
                   {quizFeedback}
                   {progress < randomizedSentences.length || failedSentences.length > 0 ? (
-                    <button onClick={nextQuiz} className="block w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">다음 문제</button>
+                    <button onClick={nextQuiz} className="block w-full mt-3 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition">다음 문제</button>
                   ) : (
-                    <button onClick={() => setMode(null)} className="block w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">메인으로 돌아가기</button>
+                    <button onClick={() => setMode(null)} className="block w-full mt-3 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition">메인으로 돌아가기</button>
                   )}
                 </div>
               )}
